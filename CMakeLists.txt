@@ -9,4 +9,4 @@ add_executable(TheFinalFrontier
         main.cpp
         Image/stb_image/stb_image.h
         Image/stb_image/stb_image_write.h
-        Utils/_Timer.h Utils/AlignedAllocator.h Image/Image.hpp Image/Image.cpp ImagePredefined/Inversion.cpp ImagePredefined/Grayscale.cpp ImagePredefined/Inversion.hpp Filter/Filter.cpp Filter/Filter.hpp)
+        Utils/_Timer.h Utils/AlignedAllocator.h Image/Image.hpp Image/Image.cpp Predefined/Inversion.cpp Predefined/Grayscale.cpp Predefined/Inversion.hpp Filter/Filter.cpp Filter/Filter.hpp Arithmetic/ArithmeticRef.cpp Arithmetic/Arithmetic.hpp Arithmetic/ArithmeticSIMD.cpp SIMD_Util/SIMD_Util.h)

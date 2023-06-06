@@ -3,9 +3,10 @@
 #include "Image/Image.hpp"
 #include "Utils/_Timer.h"
 
-#include "ImagePredefined/Grayscale.hpp"
-#include "ImagePredefined/Inversion.hpp"
+#include "Predefined/Inversion.hpp"
+#include "Predefined/Grayscale.hpp"
 #include "Filter/Filter.hpp"
+#include "Arithmetic/Arithmetic.hpp"
 
 
 int main() {
@@ -13,18 +14,18 @@ int main() {
     Image newImg{img};
 
     StartTimer(No SIMD)
-        sobel(img, newImg);
+        div_ref(img, newImg, 5);
     EndTimer
 
-    newImg.save("shadow1.png");
+    newImg.save("shadow1.jpg");
 
     newImg = Image{img};
 
     StartTimer(Wt SIMD)
-        stencil(img, newImg);
+        div_simd(img, newImg, 5);
     EndTimer
 
-    newImg.save("shadow2.png");
+    newImg.save("shadow2.jpg");
 
     return 0;
 }

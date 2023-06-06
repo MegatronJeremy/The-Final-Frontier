@@ -119,7 +119,7 @@ RECENT REVISION HISTORY:
 
                      Jacko Dirks
 
-  To add your name to the credits, pick a random blank space in the middle and fill it.
+  To add_ref your name to the credits, pick a random blank space in the middle and fill it.
   80% of merge conflicts on stb PRs are due to people adding their name at the end
   of the credits.
 */
@@ -1018,21 +1018,21 @@ static int stbi__mul2sizes_valid(int a, int b)
 }
 
 #if !defined(STBI_NO_JPEG) || !defined(STBI_NO_PNG) || !defined(STBI_NO_TGA) || !defined(STBI_NO_HDR)
-// returns 1 if "a*b + add" has no negative terms/factors and doesn't overflow
+// returns 1 if "a*b + add_ref" has no negative terms/factors and doesn't overflow
 static int stbi__mad2sizes_valid(int a, int b, int add)
 {
    return stbi__mul2sizes_valid(a, b) && stbi__addsizes_valid(a*b, add);
 }
 #endif
 
-// returns 1 if "a*b*c + add" has no negative terms/factors and doesn't overflow
+// returns 1 if "a*b*c + add_ref" has no negative terms/factors and doesn't overflow
 static int stbi__mad3sizes_valid(int a, int b, int c, int add)
 {
    return stbi__mul2sizes_valid(a, b) && stbi__mul2sizes_valid(a*b, c) &&
       stbi__addsizes_valid(a*b*c, add);
 }
 
-// returns 1 if "a*b*c*d + add" has no negative terms/factors and doesn't overflow
+// returns 1 if "a*b*c*d + add_ref" has no negative terms/factors and doesn't overflow
 #if !defined(STBI_NO_LINEAR) || !defined(STBI_NO_HDR) || !defined(STBI_NO_PNM)
 static int stbi__mad4sizes_valid(int a, int b, int c, int d, int add)
 {
@@ -1134,9 +1134,9 @@ STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_fli
 
 static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc)
 {
-   memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add new fields
+   memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add_ref new fields
    ri->bits_per_channel = 8; // default is 8 so most paths don't have to be changed
-   ri->channel_order = STBI_ORDER_RGB; // all current input & output are this, but this is here so we can add BGR order
+   ri->channel_order = STBI_ORDER_RGB; // all current input & output are this, but this is here so we can add_ref BGR order
    ri->num_channels = 0;
 
    // test the formats with a very explicit header first (at least a FOURCC
@@ -2015,7 +2015,7 @@ static int stbi__build_huffman(stbi__huffman *h, int *count)
    code = 0;
    k = 0;
    for(j=1; j <= 16; ++j) {
-      // compute delta to add to code to compute symbol id
+      // compute delta to add_ref to code to compute symbol id
       h->delta[j] = k - code;
       if (h->size[k] == j) {
          while (h->size[k] == j)
@@ -2503,7 +2503,7 @@ static void stbi__idct_block(stbi_uc *out, int out_stride, short data[64])
       // we've got an extra 1<<3, so 1<<17 total we need to remove.
       // so we want to round that, which means adding 0.5 * 1<<17,
       // aka 65536. Also, we'll end up with -128 to 127 that we want
-      // to encode as 0..255 by adding 128, so we'll add that before the shift
+      // to encode as 0..255 by adding 128, so we'll add_ref that before the shift
       x0 += 65536 + (128<<17);
       x1 += 65536 + (128<<17);
       x2 += 65536 + (128<<17);
@@ -2549,7 +2549,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       __m128i out##_l = _mm_srai_epi32(_mm_unpacklo_epi16(_mm_setzero_si128(), (in)), 4); \
       __m128i out##_h = _mm_srai_epi32(_mm_unpackhi_epi16(_mm_setzero_si128(), (in)), 4)
 
-   // wide add
+   // wide add_ref
    #define dct_wadd(out, a, b) \
       __m128i out##_l = _mm_add_epi32(a##_l, b##_l); \
       __m128i out##_h = _mm_add_epi32(a##_h, b##_h)
@@ -2559,7 +2559,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       __m128i out##_l = _mm_sub_epi32(a##_l, b##_l); \
       __m128i out##_h = _mm_sub_epi32(a##_h, b##_h)
 
-   // butterfly a/b, add bias, then shift by "s" and pack
+   // butterfly a/b, add_ref bias, then shift by "s" and pack
    #define dct_bfly32o(out0, out1, a,b,bias,s) \
       { \
          __m128i abiased_l = _mm_add_epi32(a##_l, bias); \
@@ -2804,7 +2804,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
    row6 = vld1q_s16(data + 6*8);
    row7 = vld1q_s16(data + 7*8);
 
-   // add DC bias
+   // add_ref DC bias
    row0 = vaddq_s16(row0, vsetq_lane_s16(1024, vdupq_n_s16(0), 0));
 
    // column pass
@@ -3747,7 +3747,7 @@ static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y, stbi_uc cons
 #endif
 
 #ifdef STBI_NEON
-   // in this version, step=3 support would be easy to add. but is there demand?
+   // in this version, step=3 support would be easy to add_ref. but is there demand?
    if (step == 4) {
       // this is a fairly straightforward implementation and not super-optimized.
       uint8x8_t signflip = vdup_n_u8(0x80);
@@ -7918,7 +7918,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
               fix bug: the stbi__bmp_load() and stbi__tga_load() functions didn't work at all
       1.00    interface to zlib that skips zlib header
       0.99    correct handling of alpha in palette
-      0.98    TGA loader by lonesock; dynamically add loaders (untested)
+      0.98    TGA loader by lonesock; dynamically add_ref loaders (untested)
       0.97    jpeg errors on too large a file; also catch another malloc failure
       0.96    fix detection of invalid v value - particleman@mollyrocket forum
       0.95    during header scan, seek to markers in case of padding

@@ -6,8 +6,6 @@
 
 #include <cmath>
 
-#include "../ImagePredefined/Grayscale.hpp"
-
 void filter(Image &src, Image &dst, const double *kernel, int N) {
     for (int row = 1; row < (src.height - 1); ++row) {
         for (int column = 1; column < (src.width - 1); ++column) {
@@ -86,8 +84,8 @@ void box_blur(Image &src, Image &dst) {
 }
 
 void stencil(Image &src, Image &dst) {
-    double GX[] = {0, 1, 0,
-                   1, -4, 1,
-                   0, 1, 0};
+    double GX[] = {1, -1, 1,
+                   -1, 4, -1,
+                   1, -1, 1};
     filter(src, dst, GX, 3);
 }

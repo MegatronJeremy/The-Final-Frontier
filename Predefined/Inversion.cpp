@@ -6,6 +6,7 @@
 
 #include "Inversion.hpp"
 
+
 void inversion_ref(Image &src, Image &dst) {
     for (size_t i = 0; i < src.rgbSize; i++) {
         dst.R[i] = RGB_MAX - src.R[i];
@@ -22,6 +23,7 @@ void inversion_simd(Image &src, Image &dst) {
 
     size_t rounded_down = src.rgbSize / 32;
 
+    // using registers to store pointers
     const auto *RP = reinterpret_cast<const __m256i *>(src.R.data());
     const auto *GP = reinterpret_cast<const __m256i *>(src.G.data());
     const auto *BP = reinterpret_cast<const __m256i *>(src.B.data());
@@ -46,6 +48,7 @@ void inversion_simd(Image &src, Image &dst) {
         _mm256_store_si256(nBP + i, b);
 
         if (src.channels == 4) {
+            // loop fusion
             __m256i a = _mm256_load_si256(AP + i);
             _mm256_store_si256(nAP + i, a);
         }
