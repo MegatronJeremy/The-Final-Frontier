@@ -1,6 +1,5 @@
 #pragma once
 
-#include <c++/9/stdlib.h>
 #include <cstdio>
 #include <cstring>
 

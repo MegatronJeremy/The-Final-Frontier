@@ -18,16 +18,17 @@ Image::Image(const std::string &fname) {
         ON_ERROR_EXIT(true, "Invalid image extension");
     }
 
-    // copy image to aligned space
-    data = AlignedVector<uint8_t>(size);
-    memcpy(data.data(), image, size);
+    R = AlignedVector<uint8_t>(rgbSize);
+    G = AlignedVector<uint8_t>(rgbSize);
+    B = AlignedVector<uint8_t>(rgbSize);
+    A = AlignedVector<uint8_t>(rgbSize);
 
-    for (size_t i = 0; i < size;) {
-        R.push_back(image[i++]);
-        G.push_back(image[i++]);
-        B.push_back(image[i++]);
+    for (size_t i = 0, j = 0; i < size; j++) {
+        R[j] = image[i++];
+        G[j] = image[i++];
+        B[j] = image[i++];
         if (channels == 4) {
-            A.push_back(image[i++]);
+            A[j] = image[i++];
         }
     }
 
@@ -35,7 +36,9 @@ Image::Image(const std::string &fname) {
     stbi_image_free(image);
 }
 
-void Image::saveRGB(const std::string &fname) {
+void Image::save(const std::string &fname) const {
+    auto *data = new uint8_t[size];
+
     for (size_t i = 0, j = 0; i < size; j++) {
         data[i++] = R[j];
         data[i++] = G[j];
@@ -44,17 +47,14 @@ void Image::saveRGB(const std::string &fname) {
             data[i++] = A[j];
         }
     }
-    save(fname);
-}
-
-void Image::save(const std::string &fname) {
-// Check if the file name ends in one of the .jpg/.JPG/.jpeg/.JPEG or .png/.PNG
     if (str_ends_in(fname, ".jpg") || str_ends_in(fname, ".JPG") || str_ends_in(fname, ".jpeg") ||
         str_ends_in(fname, ".JPEG")) {
-        stbi_write_jpg(fname.c_str(), width, height, channels, data.data(), 100);
+        stbi_write_jpg(fname.c_str(), width, height, channels, data, 100);
     } else if (str_ends_in(fname, ".png") || str_ends_in(fname, ".PNG")) {
-        stbi_write_png(fname.c_str(), width, height, channels, data.data(), width * channels);
+        stbi_write_png(fname.c_str(), width, height, channels, data, width * channels);
     } else {
         ON_ERROR_EXIT(true, "Invalid image extension");
     }
+
+    delete[] data;
 }

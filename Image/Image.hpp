@@ -6,25 +6,23 @@
 #include <vector>
 #include "../Utils/AlignedAllocator.h"
 
-template<typename T, std::size_t ALIGNMENT_IN_BYTES = 64>
-using AlignedVector = std::vector<T, AlignedAllocator<T, ALIGNMENT_IN_BYTES>>;
 
 struct Image {
+
     Image() = default;
 
     explicit Image(const std::string &fname);
 
-    void save(const std::string &fname);
+    void save(const std::string &fname) const;
 
-    void saveRGB(const std::string &fname);
+    template<typename T, std::size_t ALIGNMENT_IN_BYTES = 64>
+    using AlignedVector = std::vector<T, AlignedAllocator<T, ALIGNMENT_IN_BYTES>>;
 
     int width{};
     int height{};
     int channels{};
-    size_t size{};
     size_t rgbSize{};
-
-    AlignedVector<uint8_t> data;
+    size_t size{};
 
     AlignedVector<uint8_t> R;
     AlignedVector<uint8_t> G;

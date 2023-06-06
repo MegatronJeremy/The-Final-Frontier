@@ -4,36 +4,33 @@
 
 #include <immintrin.h>
 
-void inversion(size_t rgb_size, int channels,
-               const uint8_t *R, const uint8_t *G, const uint8_t *B, const uint8_t *A,
-               uint8_t *nR, uint8_t *nG, uint8_t *nB, uint8_t *nA) {
-    for (size_t i = 0; i < rgb_size; i++) {
-        nR[i] = RGB_MAX - R[i];
-        nG[i] = RGB_MAX - G[i];
-        nB[i] = RGB_MAX - B[i];
-        if (channels == 4) {
-            nA[i] = A[i];
+#include "Inversion.hpp"
+
+void inversion_ref(Image &src, Image &dst) {
+    for (size_t i = 0; i < src.rgbSize; i++) {
+        dst.R[i] = RGB_MAX - src.R[i];
+        dst.G[i] = RGB_MAX - src.G[i];
+        dst.B[i] = RGB_MAX - src.B[i];
+        if (src.channels == 4) {
+            dst.A[i] = src.A[i];
         }
     }
 }
 
-void inversion_simd(size_t rgb_size, int channels,
-                    const uint8_t *R, const uint8_t *G, const uint8_t *B, const uint8_t *A,
-                    uint8_t *nR, uint8_t *nG, uint8_t *nB, uint8_t *nA) {
-
+void inversion_simd(Image &src, Image &dst) {
     __m256i rgb_max = _mm256_set1_epi8(RGB_MAX);
 
-    size_t rounded_down = rgb_size / 32;
+    size_t rounded_down = src.rgbSize / 32;
 
-    const auto *RP = reinterpret_cast<const __m256i *>(R);
-    const auto *GP = reinterpret_cast<const __m256i *>(G);
-    const auto *BP = reinterpret_cast<const __m256i *>(B);
-    const auto *AP = reinterpret_cast<const __m256i *>(A);
+    const auto *RP = reinterpret_cast<const __m256i *>(src.R.data());
+    const auto *GP = reinterpret_cast<const __m256i *>(src.G.data());
+    const auto *BP = reinterpret_cast<const __m256i *>(src.B.data());
+    const auto *AP = reinterpret_cast<const __m256i *>(src.A.data());
 
-    auto *nRP = reinterpret_cast<__m256i *>(nR);
-    auto *nGP = reinterpret_cast<__m256i *>(nG);
-    auto *nBP = reinterpret_cast<__m256i *>(nB);
-    auto *nAP = reinterpret_cast<__m256i *>(nA);
+    auto *nRP = reinterpret_cast<__m256i *>(dst.R.data());
+    auto *nGP = reinterpret_cast<__m256i *>(dst.G.data());
+    auto *nBP = reinterpret_cast<__m256i *>(dst.B.data());
+    auto *nAP = reinterpret_cast<__m256i *>(dst.A.data());
 
     for (size_t i = 0; i < rounded_down; i++) {
         __m256i r = _mm256_load_si256(RP + i);
@@ -48,18 +45,18 @@ void inversion_simd(size_t rgb_size, int channels,
         _mm256_store_si256(nGP + i, g);
         _mm256_store_si256(nBP + i, b);
 
-        if (channels == 4) {
+        if (src.channels == 4) {
             __m256i a = _mm256_load_si256(AP + i);
             _mm256_store_si256(nAP + i, a);
         }
     }
 
-    for (size_t i = rounded_down * 32; i < rgb_size; i++) {
-        nR[i] = RGB_MAX - R[i];
-        nG[i] = RGB_MAX - G[i];
-        nB[i] = RGB_MAX - B[i];
-        if (channels == 4) {
-            nA[i] = A[i];
+    for (size_t i = rounded_down * 32; i < src.rgbSize; i++) {
+        dst.R[i] = RGB_MAX - src.R[i];
+        dst.G[i] = RGB_MAX - src.G[i];
+        dst.B[i] = RGB_MAX - src.B[i];
+        if (src.channels == 4) {
+            dst.A[i] = src.A[i];
         }
     }
 

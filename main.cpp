@@ -5,27 +5,26 @@
 
 #include "ImagePredefined/Grayscale.hpp"
 #include "ImagePredefined/Inversion.hpp"
+#include "Filter/Filter.hpp"
 
 
 int main() {
-    Image img{"Shadow.png"};
+    Image img{"sky.jpg"};
     Image newImg{img};
 
     StartTimer(No SIMD)
-        grayscale_struct_vectors(img.rgbSize, img.channels, img.R.data(), img.G.data(), img.B.data(),
-                  img.A.data(), newImg.R.data(), newImg.G.data(), newImg.B.data(), newImg.A.data());
+        sobel(img, newImg);
     EndTimer
 
-    newImg.saveRGB("shadow1.png");
+    newImg.save("shadow1.png");
 
     newImg = Image{img};
 
-    StartTimer(SIMD)
-        grayscale_simd(img.rgbSize, img.channels, img.R.data(), img.G.data(), img.B.data(),
-                       img.A.data(), newImg.R.data(), newImg.G.data(), newImg.B.data(), newImg.A.data());
+    StartTimer(Wt SIMD)
+        stencil(img, newImg);
     EndTimer
 
-    newImg.saveRGB("shadow2.png");
+    newImg.save("shadow2.png");
 
     return 0;
 }

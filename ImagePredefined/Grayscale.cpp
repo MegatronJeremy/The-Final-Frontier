@@ -1,36 +1,31 @@
 #include "Grayscale.hpp"
 
 
-void grayscale_struct_vectors(size_t rgb_size, int channels,
-                              const uint8_t *R, const uint8_t *G, const uint8_t *B, const uint8_t *A,
-                              uint8_t *nR, uint8_t *nG, uint8_t *nB, uint8_t *nA) {
-    for (size_t i = 0; i < rgb_size; i++) {
-        uint8_t average = (R[i] + G[i] + B[i]) / 3;
-        nR[i] = nG[i] = nB[i] = average;
-        if (channels == 4) {
-            nA[i] = A[i];
+void grayscale_ref(Image &src, Image &dst) {
+    for (size_t i = 0; i < src.rgbSize; i++) {
+        uint8_t average = (src.R[i] + src.G[i] + src.B[i]) / 3;
+        dst.R[i] = dst.G[i] = dst.B[i] = average;
+        if (src.channels == 4) {
+            dst.A[i] = src.A[i];
         }
     }
 }
 
-void grayscale_simd(size_t rgb_size, int channels,
-                    const uint8_t *R, const uint8_t *G, const uint8_t *B, const uint8_t *A,
-                    uint8_t *nR, uint8_t *nG, uint8_t *nB, uint8_t *nA) {
-
+void grayscale_simd(Image &src, Image &dst) {
     __m256i coeff = _mm256_set1_epi16(43);
     __m128i count = _mm_set1_epi64x(7); // 43 / 128 == 0.3359375
 
-    size_t rounded_down = rgb_size / 16;
+    size_t rounded_down = src.rgbSize / 16;
 
-    const auto *RP = reinterpret_cast<const __m128i *>(R);
-    const auto *GP = reinterpret_cast<const __m128i *>(G);
-    const auto *BP = reinterpret_cast<const __m128i *>(B);
-    const auto *AP = reinterpret_cast<const __m128i *>(A);
+    const auto *RP = reinterpret_cast<const __m128i *>(src.R.data());
+    const auto *GP = reinterpret_cast<const __m128i *>(src.G.data());
+    const auto *BP = reinterpret_cast<const __m128i *>(src.B.data());
+    const auto *AP = reinterpret_cast<const __m128i *>(src.A.data());
 
-    auto *nRP = reinterpret_cast<__m128i *>(nR);
-    auto *nGP = reinterpret_cast<__m128i *>(nG);
-    auto *nBP = reinterpret_cast<__m128i *>(nB);
-    auto *nAP = reinterpret_cast<__m128i *>(nA);
+    auto *nRP = reinterpret_cast<__m128i *>(dst.R.data());
+    auto *nGP = reinterpret_cast<__m128i *>(dst.G.data());
+    auto *nBP = reinterpret_cast<__m128i *>(dst.B.data());
+    auto *nAP = reinterpret_cast<__m128i *>(dst.A.data());
 
     for (size_t i = 0; i < rounded_down; i++) {
         __m128i r = _mm_load_si128(RP + i);
@@ -55,17 +50,17 @@ void grayscale_simd(size_t rgb_size, int channels,
         _mm_store_si128(nGP + i, res128);
         _mm_store_si128(nBP + i, res128);
 
-        if (channels == 4) {
+        if (src.channels == 4) {
             __m128i a = _mm_load_si128(AP + i);
             _mm_store_si128(nAP + i, a);
         }
     }
 
-    for (size_t i = rounded_down * 16; i < rgb_size; i++) {
-        uint8_t average = (R[i] + G[i] + B[i]) / 3;
-        nR[i] = nG[i] = nB[i] = average;
-        if (channels == 4) {
-            nA[i] = A[i];
+    for (size_t i = rounded_down * 16; i < src.rgbSize; i++) {
+        uint8_t average = (src.R[i] + src.G[i] + src.B[i]) / 3;
+        dst.R[i] = dst.G[i] = dst.B[i] = average;
+        if (src.channels == 4) {
+            dst.A[i] = src.A[i];
         }
     }
 }
