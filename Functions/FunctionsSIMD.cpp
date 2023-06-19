@@ -1,12 +1,12 @@
 #include "../Image/Image.hpp"
 #include "Functions.hpp"
-#include "../SIMD_Util/SIMD_Util.h"
-#include "../SIMD_Util/avx_mathfun.h"
 
-#include <cmath>
+#include "../SIMD_Util/avx_mathfun.h"
+#include "../SIMD_Util/SIMD_Util.h"
 #include <algorithm>
 
 #include <immintrin.h>
+#include <cmath>
 
 void pow_simd(Image &src, Image &dst, double c) {
     const __m256 y = _mm256_set1_ps(c);

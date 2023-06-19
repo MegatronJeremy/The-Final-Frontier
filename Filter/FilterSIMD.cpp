@@ -15,13 +15,17 @@ void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
 
     int block_size = static_cast<int>(get_cache_line_size(L1_CACHE_ID) / sizeof(uint8_t));
 
+    const int center = N / 2;
+    const double MIN = 0;
+    const double MAX = 255;
+
     for (int thread_id = 0; thread_id < num_threads; ++thread_id) {
         threads[thread_id] = std::thread([&, thread_id]() {
 
-            int block_row_start = std::max(thread_id * block_row_size, 1); // to start indexing from one
-            int block_row_end = std::min(src.height - 1, (thread_id + 1) * block_row_size);
+            int block_row_start = std::max(thread_id * block_row_size, center); // to start indexing from center
+            int block_row_end = std::min(src.height - center, (thread_id + 1) * block_row_size);
             for (int rowi = block_row_start; rowi < block_row_end; rowi += block_size) {
-                for (int coli = 1; coli < src.width - 1; coli += block_size) {
+                for (int coli = center; coli < src.width - center; coli += block_size) {
 
                     int inner_row_end = std::min(block_row_end, rowi + block_size);
                     int inner_col_end = std::min(src.width - 1, coli + block_size);
@@ -33,8 +37,8 @@ void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
 
                             for (int i = 0; i < N; ++i) {
                                 for (int j = 0; j < N; ++j) {
-                                    size_t image_row = (row + i - 1);
-                                    size_t image_column = (col + j - 1);
+                                    size_t image_row = (row + i - center);
+                                    size_t image_column = (col + j - center);
 
                                     size_t index = image_row * src.width + image_column;
 
@@ -48,9 +52,9 @@ void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
 
                             size_t index = row * src.width + col;
 
-                            dst.R[index] = (uint8_t) r;
-                            dst.G[index] = (uint8_t) g;
-                            dst.B[index] = (uint8_t) b;
+                            dst.R[index] = static_cast<uint8_t>(std::clamp(r, MIN, MAX));
+                            dst.G[index] = static_cast<uint8_t>(std::clamp(g, MIN, MAX));
+                            dst.B[index] = static_cast<uint8_t>(std::clamp(b, MIN, MAX));
                             if (src.channels == 4) {
                                 dst.A[index] = src.A[index];
                             }
@@ -66,10 +70,24 @@ void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
     });
 }
 
-void box_blur_simd(Image &src, Image &dst) {
-    double GX[] = {1. / 9, 1. / 9, 1. / 9,
-                   1. / 9, 1. / 9, 1. / 9,
-                   1. / 9, 1. / 9, 1. / 9};
-    filter_simd(src, dst, GX, 3);
+void gaussian_blur_simd(Image &src, Image &dx) {
+    double kernel[] = {1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256,
+                       4. / 256, 16. / 256, 24. / 256, 16. / 256, 4. / 256,
+                       6. / 256, 24. / 256, 36. / 256, 24. / 256, 6. / 256,
+                       4. / 256, 16. / 256, 24. / 256, 16. / 256, 4. / 256,
+                       1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256
+    };
+
+    filter_simd(src, dx, kernel, 5);
 }
 
+void unsharp_mask_simd(Image &src, Image &dx) {
+    double kernel[] = {-1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256,
+                       -4. / 256, -16. / 256, -24. / 256, -16. / 256, -4. / 256,
+                       -6. / 256, -24. / 256, 476. / 256, -24. / 256, -6. / 256,
+                       -4. / 256, -16. / 256, -24. / 256, -16. / 256, -4. / 256,
+                       -1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256
+    };
+
+    filter_simd(src, dx, kernel, 5);
+}

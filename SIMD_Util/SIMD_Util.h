@@ -65,6 +65,7 @@ static inline __m128i div_epi8(const __m128i &a, const __m128i &b) {
 }
 
 static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
+    static const __m256 one = _mm256_set1_ps(1);
     //
     // Convert to 16-bit integers
     //
@@ -83,8 +84,8 @@ static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
     //
     // Perform the operation
     //
-    const __m256 hi = _mm256_mul_ps(log256_ps(a_hi), c);
-    const __m256 lo = _mm256_mul_ps(log256_ps(a_lo), c);
+    const __m256 hi = _mm256_mul_ps(log256_ps(_mm256_add_ps(a_hi, one)), c);
+    const __m256 lo = _mm256_mul_ps(log256_ps(_mm256_add_ps(a_lo, one)), c);
     //
     // Convert back to integers
     //
@@ -102,7 +103,6 @@ static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
 }
 
 static inline __m128i pow_epi8(const __m128i &a, const __m256 &b, const __m256 &clamp, const __m256 &add) {
-    // Constants
     //
     // Convert to 16-bit integers
     //

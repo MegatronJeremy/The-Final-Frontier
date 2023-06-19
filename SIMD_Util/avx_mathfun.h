@@ -161,7 +161,7 @@ AVX2_INTOP_USING_SSE2(add_epi32)
 /* natural logarithm computed for 8 simultaneous float 
    return NaN for x <= 0
 */
-v8sf log256_ps(v8sf x) {
+static inline v8sf log256_ps(v8sf x) {
     v8si imm0;
     v8sf one = *(v8sf *) _ps256_1;
 
@@ -247,7 +247,7 @@ _PS256_CONST(cephes_exp_p3, 4.1665795894E-2);
 _PS256_CONST(cephes_exp_p4, 1.6666665459E-1);
 _PS256_CONST(cephes_exp_p5, 5.0000001201E-1);
 
-v8sf exp256_ps(v8sf x) {
+static inline v8sf exp256_ps(v8sf x) {
     v8sf tmp = _mm256_setzero_ps(), fx;
     v8si imm0;
     v8sf one = *(v8sf *) _ps256_1;
@@ -302,7 +302,6 @@ v8sf exp256_ps(v8sf x) {
     y = _mm256_mul_ps(y, pow2n);
     return y;
 }
-
 
 
 _PS256_CONST(minus_cephes_DP1, -0.78515625);

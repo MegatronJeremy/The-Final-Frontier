@@ -3,6 +3,7 @@
 #include "../Image/Image.hpp"
 #include <iostream>
 
+
 void add_ref(Image &src, Image &dst, uint8_t c);
 
 void sub_ref(Image &src, Image &dst, uint8_t c);

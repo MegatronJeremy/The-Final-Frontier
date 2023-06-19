@@ -18,12 +18,12 @@ Image::Image(const std::string &fname) {
         ON_ERROR_EXIT(true, "Invalid image extension");
     }
 
-    R = AlignedVector<uint8_t>(rgbSize);
-    G = AlignedVector<uint8_t>(rgbSize);
-    B = AlignedVector<uint8_t>(rgbSize);
+    R.reserve(rgbSize);
+    G.reserve(rgbSize);
+    B.reserve(rgbSize);
 
     if (channels == 4) {
-        A = AlignedVector<uint8_t>(rgbSize);
+        A.reserve(rgbSize);
     }
 
     for (size_t i = 0, j = 0; i < size; j++) {
@@ -62,7 +62,7 @@ void Image::save(const std::string &fname) const {
     delete[] data;
 }
 
-Image Image::createEmpty(const Image &image) {
+Image Image::createCanvas(const Image &image) {
     Image img = Image{};
     img.height = image.height;
     img.width = image.width;
@@ -70,12 +70,12 @@ Image Image::createEmpty(const Image &image) {
     img.size = image.size;
     img.rgbSize = image.rgbSize;
 
-    img.R = AlignedVector<uint8_t>(img.rgbSize);
-    img.G = AlignedVector<uint8_t>(img.rgbSize);
-    img.B = AlignedVector<uint8_t>(img.rgbSize);
+    img.R.reserve(img.rgbSize);
+    img.G.reserve(img.rgbSize);
+    img.B.reserve(img.rgbSize);
 
     if (img.channels == 4) {
-        img.A = AlignedVector<uint8_t>(img.rgbSize);
+        img.A.reserve(img.rgbSize);
     }
-    return std::move(img);
+    return img;
 }

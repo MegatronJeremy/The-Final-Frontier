@@ -1,11 +1,11 @@
 #pragma once
 
-
 #include <cstdint>
 #include <string>
 #include <vector>
 #include "../Utils/AlignedAllocator.h"
 
+//#define UCHAR_MAX (255)
 
 struct Image {
 
@@ -15,7 +15,7 @@ struct Image {
 
     void save(const std::string &fname) const;
 
-    static Image createEmpty(const Image &image);
+    static Image createCanvas(const Image &image);
 
     template<typename T, std::size_t ALIGNMENT_IN_BYTES = 64>
     using AlignedVector = std::vector<T, AlignedAllocator<T, ALIGNMENT_IN_BYTES>>;

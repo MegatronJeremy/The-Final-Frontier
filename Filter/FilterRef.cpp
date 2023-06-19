@@ -5,18 +5,23 @@
 #include "Filter.hpp"
 
 #include <cmath>
+#include <algorithm>
 
 void filter_ref(Image &src, Image &dst, const double *kernel, int N) {
-    for (int row = 1; row < (src.height - 1); ++row) {
-        for (int column = 1; column < (src.width - 1); ++column) {
+    const int center = N / 2;
+    const double MIN = 0;
+    const double MAX = 255;
+
+    for (int row = center; row < (src.height - center); ++row) {
+        for (int column = center; column < (src.width - center); ++column) {
             double r = 0;
             double g = 0;
             double b = 0;
 
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < N; ++j) {
-                    size_t image_row = (row + i - 1);
-                    size_t image_column = (column + j - 1);
+                    size_t image_row = (row + i - center);
+                    size_t image_column = (column + j - center);
 
                     size_t index = image_row * src.width + image_column;
 
@@ -30,9 +35,9 @@ void filter_ref(Image &src, Image &dst, const double *kernel, int N) {
 
             size_t index = row * src.width + column;
 
-            dst.R[index] = (uint8_t) r;
-            dst.G[index] = (uint8_t) g;
-            dst.B[index] = (uint8_t) b;
+            dst.R[index] = static_cast<uint8_t>(std::clamp(r, MIN, MAX));
+            dst.G[index] = static_cast<uint8_t>(std::clamp(g, MIN, MAX));
+            dst.B[index] = static_cast<uint8_t>(std::clamp(b, MIN, MAX));
             if (src.channels == 4) {
                 dst.A[index] = src.A[index];
             }
@@ -76,23 +81,24 @@ void sobel(Image &src, Image &dst) {
     }
 }
 
-void box_blur_ref(Image &src, Image &dst) {
-    double GX[] = {1. / 9, 1. / 9, 1. / 9,
-                   1. / 9, 1. / 9, 1. / 9,
-                   1. / 9, 1. / 9, 1. / 9};
-    filter_ref(src, dst, GX, 3);
+void gaussian_blur_ref(Image &src, Image &dst) {
+    double kernel[] = {1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256,
+                       4. / 256, 16. / 256, 24. / 256, 16. / 256, 4. / 256,
+                       6. / 256, 24. / 256, 36. / 256, 24. / 256, 6. / 256,
+                       4. / 256, 16. / 256, 24. / 256, 16. / 256, 4. / 256,
+                       1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256
+    };
+
+    filter_ref(src, dst, kernel, 5);
 }
 
-void sharp(Image &src, Image &dst) {
-    double GX[] = {1, 1, 1,
-                   1, 2, 1,
-                   1, 1, 1};
-    filter_ref(src, dst, GX, 3);
-}
+void unsharp_mask_ref(Image &src, Image &dst) {
+    double kernel[] = {-1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256,
+                       -4. / 256, -16. / 256, -24. / 256, -16. / 256, -4. / 256,
+                       -6. / 256, -24. / 256, 476. / 256, -24. / 256, -6. / 256,
+                       -4. / 256, -16. / 256, -24. / 256, -16. / 256, -4. / 256,
+                       -1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256
+    };
 
-void stencil(Image &src, Image &dst) {
-    double GX[] = {1, -1, 1,
-                   -1, 4, -1,
-                   1, -1, 1};
-    filter_ref(src, dst, GX, 3);
+    filter_ref(src, dst, kernel, 5);
 }

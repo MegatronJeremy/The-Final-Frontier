@@ -12,15 +12,15 @@
 
 int main() {
     Image img{"ai.jpg"};
-    Image newImg1 = Image::createEmpty(img);
-    Image newImg2 = Image::createEmpty(img);
+    Image newImg1 = Image::createCanvas(img);
+    Image newImg2 = Image::createCanvas(img);
 
     StartTimer(No SIMD)
-        sub_simd(img, newImg1, 10);
+        unsharp_mask_ref(img, newImg1);
     EndTimer
 
     StartTimer(Wt SIMD)
-        add_simd(img, newImg2, 10);
+        unsharp_mask_simd(img, newImg2);
     EndTimer
 
     newImg1.save("ai1.jpg");

@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 void pow_ref(Image &src, Image &dst, double c);
 
 void log_ref(Image &src, Image &dst);
