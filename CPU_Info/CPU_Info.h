@@ -23,7 +23,7 @@ int get_cache_line_size(int id) {
 
     // end of valid cache identifiers
     if (cache_type == 0) {
-        return -1;
+        return 64; // failsafe
     }
 
     return (ebx & 0xFFF) + 1;
