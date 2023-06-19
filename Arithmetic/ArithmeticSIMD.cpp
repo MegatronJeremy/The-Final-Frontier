@@ -1,6 +1,7 @@
 #include "Arithmetic.hpp"
 
 #include <immintrin.h>
+#include <algorithm>
 
 #include "../SIMD_Util/SIMD_Util.h"
 
@@ -23,9 +24,9 @@ void add_simd(Image &src, Image &dst, uint8_t c) {
         __m256i g = _mm256_load_si256(GP + i);
         __m256i b = _mm256_load_si256(BP + i);
 
-        r = _mm256_add_epi8(r, coeff);
-        g = _mm256_add_epi8(g, coeff);
-        b = _mm256_add_epi8(b, coeff);
+        r = _mm256_adds_epu8(r, coeff);
+        g = _mm256_adds_epu8(g, coeff);
+        b = _mm256_adds_epu8(b, coeff);
 
         _mm256_store_si256(nRP + i, r);
         _mm256_store_si256(nGP + i, g);
@@ -38,9 +39,9 @@ void add_simd(Image &src, Image &dst, uint8_t c) {
     }
 
     for (size_t i = rounded_down * 32; i < src.rgbSize; i++) {
-        dst.R[i] = src.R[i] + c;
-        dst.G[i] = src.G[i] + c;
-        dst.B[i] = src.B[i] + c;
+        dst.R[i] = std::clamp(src.R[i] + c, 0, UCHAR_MAX);
+        dst.G[i] = std::clamp(src.G[i] + c, 0, UCHAR_MAX);
+        dst.B[i] = std::clamp(src.B[i] + c, 0, UCHAR_MAX);
         if (src.channels == 4) {
             dst.A[i] = src.A[i];
         }
@@ -66,9 +67,9 @@ void sub_simd(Image &src, Image &dst, uint8_t c) {
         __m256i g = _mm256_load_si256(GP + i);
         __m256i b = _mm256_load_si256(BP + i);
 
-        r = _mm256_sub_epi8(r, coeff);
-        g = _mm256_sub_epi8(g, coeff);
-        b = _mm256_sub_epi8(b, coeff);
+        r = _mm256_subs_epu8(r, coeff);
+        g = _mm256_subs_epu8(g, coeff);
+        b = _mm256_subs_epu8(b, coeff);
 
         _mm256_store_si256(nRP + i, r);
         _mm256_store_si256(nGP + i, g);
@@ -81,9 +82,9 @@ void sub_simd(Image &src, Image &dst, uint8_t c) {
     }
 
     for (size_t i = rounded_down * 32; i < src.rgbSize; i++) {
-        dst.R[i] = src.R[i] - c;
-        dst.G[i] = src.G[i] - c;
-        dst.B[i] = src.B[i] - c;
+        dst.R[i] = std::clamp(src.R[i] - c, 0, UCHAR_MAX);
+        dst.G[i] = std::clamp(src.G[i] - c, 0, UCHAR_MAX);
+        dst.B[i] = std::clamp(src.B[i] - c, 0, UCHAR_MAX);
         if (src.channels == 4) {
             dst.A[i] = src.A[i];
         }
@@ -109,9 +110,9 @@ void inv_sub_simd(Image &src, Image &dst, uint8_t c) {
         __m256i g = _mm256_load_si256(GP + i);
         __m256i b = _mm256_load_si256(BP + i);
 
-        r = _mm256_sub_epi8(coeff, r);
-        g = _mm256_sub_epi8(coeff, g);
-        b = _mm256_sub_epi8(coeff, b);
+        r = _mm256_subs_epu8(coeff, r);
+        g = _mm256_subs_epu8(coeff, g);
+        b = _mm256_subs_epu8(coeff, b);
 
         _mm256_store_si256(nRP + i, r);
         _mm256_store_si256(nGP + i, g);
@@ -124,9 +125,9 @@ void inv_sub_simd(Image &src, Image &dst, uint8_t c) {
     }
 
     for (size_t i = rounded_down * 32; i < src.rgbSize; i++) {
-        dst.R[i] = c - src.R[i];
-        dst.G[i] = c - src.G[i];
-        dst.B[i] = c - src.B[i];
+        dst.R[i] = std::clamp(c - src.R[i], 0, UCHAR_MAX);
+        dst.G[i] = std::clamp(c - src.G[i], 0, UCHAR_MAX);
+        dst.B[i] = std::clamp(c - src.B[i], 0, UCHAR_MAX);
         if (src.channels == 4) {
             dst.A[i] = src.A[i];
         }
@@ -167,9 +168,9 @@ void mul_simd(Image &src, Image &dst, uint8_t c) {
     }
 
     for (size_t i = rounded_down * 16; i < src.rgbSize; i++) {
-        dst.R[i] = src.R[i] * c;
-        dst.G[i] = src.G[i] * c;
-        dst.B[i] = src.B[i] * c;
+        dst.R[i] = std::clamp(src.R[i] * c, 0, UCHAR_MAX);
+        dst.G[i] = std::clamp(src.G[i] * c, 0, UCHAR_MAX);
+        dst.B[i] = std::clamp(src.B[i] * c, 0, UCHAR_MAX);
         if (src.channels == 4) {
             dst.A[i] = src.A[i];
         }
@@ -273,9 +274,9 @@ void inv_div_simd(Image &src, Image &dst, uint8_t c) {
     }
 
     for (size_t i = rounded_down * 16; i < src.rgbSize; i++) {
-        dst.R[i] = src.R[i] != 0 ? c / src.R[i] : 255;
-        dst.G[i] = src.G[i] != 0 ? c / src.G[i] : 255;
-        dst.B[i] = src.B[i] != 0 ? c / src.B[i] : 255;
+        dst.R[i] = src.R[i] != 0 ? c / src.R[i] : UCHAR_MAX;
+        dst.G[i] = src.G[i] != 0 ? c / src.G[i] : UCHAR_MAX;
+        dst.B[i] = src.B[i] != 0 ? c / src.B[i] : UCHAR_MAX;
         if (src.channels == 4) {
             dst.A[i] = src.A[i];
         }

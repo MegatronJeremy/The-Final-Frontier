@@ -39,9 +39,9 @@ void inversion_simd(Image &src, Image &dst) {
         __m256i g = _mm256_load_si256(GP + i);
         __m256i b = _mm256_load_si256(BP + i);
 
-        r = _mm256_sub_epi8(rgb_max, r);
-        g = _mm256_sub_epi8(rgb_max, g);
-        b = _mm256_sub_epi8(rgb_max, b);
+        r = _mm256_subs_epu8(rgb_max, r);
+        g = _mm256_subs_epu8(rgb_max, g);
+        b = _mm256_subs_epu8(rgb_max, b);
 
         _mm256_store_si256(nRP + i, r);
         _mm256_store_si256(nGP + i, g);

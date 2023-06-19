@@ -7,25 +7,24 @@
 #include "Predefined/Grayscale.hpp"
 #include "Filter/Filter.hpp"
 #include "Arithmetic/Arithmetic.hpp"
+#include "Functions/Functions.hpp"
 
 
 int main() {
-    Image img{"sky.jpg"};
-    Image newImg{img};
+    Image img{"ai.jpg"};
+    Image newImg1 = Image::createEmpty(img);
+    Image newImg2 = Image::createEmpty(img);
 
     StartTimer(No SIMD)
-        div_ref(img, newImg, 5);
+        add_ref(img, newImg1, 10);
     EndTimer
-
-    newImg.save("shadow1.jpg");
-
-    newImg = Image{img};
 
     StartTimer(Wt SIMD)
-        div_simd(img, newImg, 5);
+        add_simd(img, newImg2, 10);
     EndTimer
 
-    newImg.save("shadow2.jpg");
+    newImg1.save("ai1.jpg");
+    newImg2.save("ai2.jpg");
 
     return 0;
 }

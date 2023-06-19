@@ -15,6 +15,8 @@ struct Image {
 
     void save(const std::string &fname) const;
 
+    static Image createEmpty(const Image &image);
+
     template<typename T, std::size_t ALIGNMENT_IN_BYTES = 64>
     using AlignedVector = std::vector<T, AlignedAllocator<T, ALIGNMENT_IN_BYTES>>;
 

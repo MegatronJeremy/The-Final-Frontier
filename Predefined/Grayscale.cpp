@@ -1,5 +1,7 @@
 #include "Grayscale.hpp"
 
+#include "../SIMD_Util/SIMD_Util.h"
+
 
 void grayscale_ref(Image &src, Image &dst) {
     for (size_t i = 0; i < src.rgbSize; i++) {
@@ -36,15 +38,13 @@ void grayscale_simd(Image &src, Image &dst) {
         __m256i g16 = _mm256_cvtepu8_epi16(g);
         __m256i b16 = _mm256_cvtepu8_epi16(b);
 
-        __m256i res = _mm256_add_epi16(r16, g16);
-        res = _mm256_add_epi16(res, b16);
+        __m256i res = _mm256_adds_epu16(r16, g16);
+        res = _mm256_adds_epu16(res, b16);
 
         res = _mm256_mullo_epi16(res, coeff);
         res = _mm256_srl_epi16(res, count);
 
-        __m128i lo_lane = _mm256_castsi256_si128(res);
-        __m128i hi_lane = _mm256_extracti128_si256(res, 1);
-        __m128i res128 = _mm_packus_epi16(lo_lane, hi_lane);
+        __m128i res128 = cvtepu16_epu8(res);
 
         _mm_store_si128(nRP + i, res128);
         _mm_store_si128(nGP + i, res128);
