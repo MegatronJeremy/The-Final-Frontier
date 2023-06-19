@@ -16,11 +16,11 @@ int main() {
     Image newImg2 = Image::createEmpty(img);
 
     StartTimer(No SIMD)
-        add_ref(img, newImg1, 10);
+        box_blur_ref(img, newImg1);
     EndTimer
 
     StartTimer(Wt SIMD)
-        add_simd(img, newImg2, 10);
+        box_blur_simd(img, newImg2);
     EndTimer
 
     newImg1.save("ai1.jpg");

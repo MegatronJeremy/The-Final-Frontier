@@ -17,4 +17,4 @@ add_executable(TheFinalFrontier
         Arithmetic/Arithmetic.hpp Arithmetic/ArithmeticSIMD.cpp
         SIMD_Util/SIMD_Util.h Functions/Functions.hpp
         Functions/FunctionsRef.cpp Functions/FunctionsSIMD.cpp
-        SIMD_Util/avx_mathfun.h Filter/FilterSIMD.cpp)
+        SIMD_Util/avx_mathfun.h Filter/FilterSIMD.cpp CPU_Info/CPU_Info.h)
