@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
+void filter_mt_blocking(Image &src, Image &dst, const double *kernel, int N) {
     // number of hardware threads
     uint32_t num_threads = std::thread::hardware_concurrency();
     std::vector<std::thread> threads(num_threads);
@@ -70,7 +70,7 @@ void filter_simd(Image &src, Image &dst, const double *kernel, int N) {
     });
 }
 
-void gaussian_blur_simd(Image &src, Image &dx) {
+void gaussian_blur_mt_blocking(Image &src, Image &dx) {
     double kernel[] = {1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256,
                        4. / 256, 16. / 256, 24. / 256, 16. / 256, 4. / 256,
                        6. / 256, 24. / 256, 36. / 256, 24. / 256, 6. / 256,
@@ -78,10 +78,10 @@ void gaussian_blur_simd(Image &src, Image &dx) {
                        1. / 256, 4. / 256, 6. / 256, 4. / 256, 1. / 256
     };
 
-    filter_simd(src, dx, kernel, 5);
+    filter_mt_blocking(src, dx, kernel, 5);
 }
 
-void unsharp_mask_simd(Image &src, Image &dx) {
+void unsharp_mask_mt_blocking(Image &src, Image &dx) {
     double kernel[] = {-1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256,
                        -4. / 256, -16. / 256, -24. / 256, -16. / 256, -4. / 256,
                        -6. / 256, -24. / 256, 476. / 256, -24. / 256, -6. / 256,
@@ -89,5 +89,5 @@ void unsharp_mask_simd(Image &src, Image &dx) {
                        -1. / 256, -4. / 256, -6. / 256, -4. / 256, -1. / 256
     };
 
-    filter_simd(src, dx, kernel, 5);
+    filter_mt_blocking(src, dx, kernel, 5);
 }
