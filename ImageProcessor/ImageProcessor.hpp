@@ -75,9 +75,10 @@ private:
     void filter();
 
 private:
-    std::unique_ptr<Image> img;
-    std::unique_ptr<Image> imgRef;
-    std::unique_ptr<Image> imgOpt;
+    Image imgRefSrc;
+    Image imgOptSrc;
+    Image imgRef;
+    Image imgOpt;
 
     std::queue<OpEnum> opsQueue;
     std::vector<Operation> ops;

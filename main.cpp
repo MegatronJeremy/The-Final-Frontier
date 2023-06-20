@@ -1,6 +1,5 @@
 
 #include "Image/Image.hpp"
-#include "Utils/_Timer.h"
 
 #include "Predefined/Inversion.hpp"
 #include "Predefined/Grayscale.hpp"

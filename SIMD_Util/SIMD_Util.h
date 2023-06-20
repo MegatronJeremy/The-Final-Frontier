@@ -6,13 +6,15 @@ extern __m256 log256_ps(__m256 x);
 
 extern __m256 exp256_ps(__m256 x);
 
-inline __m128i cvtepu16_epu8(const __m256i &val) {
+extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+cvtepu16_epu8(const __m256i &val) {
     const __m128i lo_lane = _mm256_castsi256_si128(val);
     const __m128i hi_lane = _mm256_extracti128_si256(val, 1);
     return _mm_packus_epi16(lo_lane, hi_lane);
 }
 
-static inline __m128i mul_epi8(const __m128i &v0, const __m128i &v1) {
+extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+mul_epi8(const __m128i &v0, const __m128i &v1) {
     const __m256i tmp0 = _mm256_cvtepu8_epi16(v0);
     const __m256i tmp1 = _mm256_cvtepu8_epi16(v1);
 
@@ -21,7 +23,8 @@ static inline __m128i mul_epi8(const __m128i &v0, const __m128i &v1) {
     return cvtepu16_epu8(res);
 }
 
-static inline __m128i div_epi8(const __m128i &a, const __m128i &b) {
+extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+div_epi8(const __m128i &a, const __m128i &b) {
     //
     // Convert to 16-bit integers
     //
@@ -64,7 +67,8 @@ static inline __m128i div_epi8(const __m128i &a, const __m128i &b) {
     return cvtepu16_epu8(res);
 }
 
-static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
+extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+log_epi8(const __m128i &a, const __m256 &c) {
     static const __m256 one = _mm256_set1_ps(1);
     //
     // Convert to 16-bit integers
@@ -84,8 +88,12 @@ static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
     //
     // Perform the operation
     //
-    const __m256 hi = _mm256_mul_ps(log256_ps(_mm256_add_ps(a_hi, one)), c);
-    const __m256 lo = _mm256_mul_ps(log256_ps(_mm256_add_ps(a_lo, one)), c);
+    __m256 hi = _mm256_add_ps(a_hi, one);
+    __m256 lo = _mm256_add_ps(a_lo, one);
+    hi = log256_ps(hi);
+    lo = log256_ps(lo);
+    hi = _mm256_mul_ps(hi, c);
+    lo = _mm256_mul_ps(lo, c);
     //
     // Convert back to integers
     //
@@ -102,7 +110,8 @@ static inline __m128i log_epi8(const __m128i &a, const __m256 &c) {
     return cvtepu16_epu8(res);
 }
 
-static inline __m128i pow_epi8(const __m128i &a, const __m256 &b, const __m256 &clamp, const __m256 &add) {
+extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+pow_epi8(const __m128i &a, const __m256 &b, const __m256 &clamp, const __m256 &add) {
     //
     // Convert to 16-bit integers
     //
