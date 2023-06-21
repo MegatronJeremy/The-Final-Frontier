@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 void pow_ref(Image &src, Image &dst, double c) {
     double MIN = 0;

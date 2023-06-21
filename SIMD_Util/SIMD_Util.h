@@ -117,7 +117,7 @@ pow_epi8(const __m128i &a, const __m256 &b) {
     //
     // Convert to 16-bit integers
     //
-    const __m256i a_epi16 = _mm256_cvtepi8_epi16(a);
+    const __m256i a_epi16 = _mm256_cvtepu8_epi16(a);
     //
     // Convert to two 32-bit integers
     //
@@ -132,9 +132,9 @@ pow_epi8(const __m128i &a, const __m256 &b) {
     //
     // Perform the operation
     //
-    // performPow(x, y) = exp(performLog(x)*y) with saturation
-    __m256 hi = log256_ps(_mm256_add_ps(a_hi, one));
-    __m256 lo = log256_ps(_mm256_add_ps(a_lo, one));
+    // pow(x, y) = exp(y*log(x)) with saturation
+    __m256 hi = log256_ps(a_hi);
+    __m256 lo = log256_ps(a_lo);
     hi = _mm256_mul_ps(hi, b);
     lo = _mm256_mul_ps(lo, b);
     hi = exp256_ps(hi);

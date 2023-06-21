@@ -7,6 +7,7 @@
 
 #include <immintrin.h>
 #include <cmath>
+#include <iostream>
 
 void pow_simd(Image &src, Image &dst, double c) {
     const __m256 y = _mm256_set1_ps(c);
@@ -87,6 +88,7 @@ void log_simd(Image &src, Image &dst) {
             _mm_store_si128(nAP + i, a);
         }
     }
+
 
     for (size_t i = rounded_down * 16; i < src.rgbSize; i++) {
         dst.R[i] = static_cast<uint8_t>(c * log(src.R[i] + 1));

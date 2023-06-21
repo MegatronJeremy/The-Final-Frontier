@@ -76,20 +76,24 @@ public:
         pathQueue.push(path);
     }
 
-    void performOperations(const std::string &imagePath);
+    void performOperations();
 
     void printResults() const;
+
+    void setOutputName(const std::string &fileName);
+
+    void setInputFile(const std::string &path);
 
 private:
     template<typename RefOp, typename OptOp, typename... Args>
     void performOperation(const RefOp &refOp, const OptOp &optOp, const std::string &opName,
                           Args &&...args) {
         std::cout << "Unoptimized\t";
-        double timeRef = make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
+        time_t timeRef = make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
         std::cout << "Optimized\t";
-        double timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
+        time_t timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
 
-        std::cout << opName << " time shortened " << timeRef / timeOpt << " times" << std::endl;
+        std::cout << opName << " time shortened " << static_cast<double>(timeRef) / timeOpt << " times" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
         totalRefTime += timeRef;
@@ -99,10 +103,16 @@ private:
         std::swap(imgOpt, imgOptSrc);
     }
 
+    void performBenchmark();
+
+    void saveImage();
+
+    std::string imageName;
+
+    std::string imgPath;
+
     time_t totalRefTime = 0;
     time_t totalOptTime = 0;
-
-    void performBenchmark();
 
     std::unique_ptr<Image> imgRefSrc;
     std::unique_ptr<Image> imgOptSrc;

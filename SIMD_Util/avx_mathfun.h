@@ -167,7 +167,7 @@ log256_ps(v8sf x) {
     v8sf one = *(v8sf *) _ps256_1;
 
 //v8sf invalid_mask = _mm256_cmple_ps(x, _mm256_setzero_ps());
-    v8sf invalid_mask = _mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_LE_OS);
+//    v8sf invalid_mask = _mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_LE_OS);
 
     x = _mm256_max_ps(x, *(v8sf *) _ps256_min_norm_pos);  /* cut off denormalized stuff */
 
@@ -230,7 +230,7 @@ log256_ps(v8sf x) {
     tmp = _mm256_mul_ps(e, *(v8sf *) _ps256_cephes_log_q2);
     x = _mm256_add_ps(x, y);
     x = _mm256_add_ps(x, tmp);
-    x = _mm256_or_ps(x, invalid_mask); // negative arg will be NAN
+//    x = _mm256_or_ps(x, invalid_mask); // negative arg will be NAN
     return x;
 }
 

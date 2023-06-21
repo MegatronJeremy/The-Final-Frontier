@@ -6,6 +6,8 @@
 #include "../Predefined/Grayscale.hpp"
 #include "../Predefined/Inversion.hpp"
 
+#include <filesystem>
+
 std::map<ImageProcessor::OpEnum, ImageProcessor::OpType> ImageProcessor::opTypeMap = {
         {ADD,    UCHAR},
         {SUB,    UCHAR},
@@ -88,11 +90,15 @@ std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>
         {GRAY, grayscale_simd}
 };
 
-void ImageProcessor::performOperations(const std::string &imgPath) {
+void ImageProcessor::performOperations() {
     imgRefSrc = std::make_unique<Image>(imgPath);
     imgOptSrc = std::make_unique<Image>(imgPath);
     imgRef = std::make_unique<Image>(Image::createCanvas(*imgRefSrc));
     imgOpt = std::make_unique<Image>(Image::createCanvas(*imgOptSrc));
+
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << "\t\tPerforming operations" << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
 
     while (!opsQueue.empty()) {
         OpEnum fnType = opsQueue.front();
@@ -115,7 +121,7 @@ void ImageProcessor::performOperations(const std::string &imgPath) {
                 double c = doubleOpQueue.front();
                 doubleOpQueue.pop();
 
-                performOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], c);
+                performOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], c);
             }
                 break;
             case STRING: {
@@ -131,12 +137,11 @@ void ImageProcessor::performOperations(const std::string &imgPath) {
     }
 
     printResults();
-
-    imgRefSrc->save("ai1.jpg");
-    imgOptSrc->save("ai2.jpg");
+    saveImage();
 }
 
 void ImageProcessor::performBenchmark() {
+    std::cout << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << "\t\tPerforming benchmark" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
@@ -177,7 +182,7 @@ void ImageProcessor::printResults() const {
 
     std::cout << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
-    std::cout << "\t\tResults" << std::endl;
+    std::cout << "\t\t\tResults" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << "Unoptimized\t";
     std::cout << totalRefSec.count() << " s ";
@@ -190,4 +195,22 @@ void ImageProcessor::printResults() const {
     std::cout << "Total time shortened " << static_cast<double>(totalRefTime) / static_cast<double>(totalOptTime)
               << " times" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
+}
+
+void ImageProcessor::setOutputName(const std::string &fileName) {
+    imageName = fileName;
+}
+
+void ImageProcessor::saveImage() {
+    if (imageName.empty()) {
+        imageName = std::filesystem::path(
+                imgPath).stem().string(); // Extract the image name without extension
+    }
+    std::string imageExtension = std::filesystem::path(imgPath).extension().string(); // Extract the image extension
+    imgRefSrc->save(imageName + "_ref" + imageExtension);
+    imgOptSrc->save(imageName + "_opt" + imageExtension);
+}
+
+void ImageProcessor::setInputFile(const std::string &path) {
+    imgPath = path;
 }

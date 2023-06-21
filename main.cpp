@@ -11,7 +11,28 @@
 #include <string>
 #include <iostream>
 #include <getopt.h>
-#include <stdexcept>
+
+void printUsage() {
+    std::cerr << "Invalid usage! Please use the following command line options:\n";
+    std::cerr << "Usage: <program_name> [options] <input_file>\n";
+    std::cerr << "Options:\n";
+    std::cerr << "  -a, --add <value>          : Perform addition operation with the specified value\n";
+    std::cerr << "  -s, --sub <value>          : Perform subtraction operation with the specified value\n";
+    std::cerr << "  -z, --isub <value>         : Perform inverse subtraction operation with the specified value\n";
+    std::cerr << "  -m, --mul <value>          : Perform multiplication operation with the specified value\n";
+    std::cerr << "  -d, --div <value>          : Perform division operation with the specified value\n";
+    std::cerr << "  -c, --idiv <value>         : Perform inverse division operation with the specified value\n";
+    std::cerr << "  -p, --pow <value>          : Perform power operation with the specified value\n";
+    std::cerr << "  -l, --log                  : Perform logarithm operation\n";
+    std::cerr << "  -b, --abs                  : Perform absolute value operation\n";
+    std::cerr << "  -n, --min <value>          : Perform minimum operation with the specified value\n";
+    std::cerr << "  -x, --max <value>          : Perform maximum operation with the specified value\n";
+    std::cerr << "  -i, --inv                  : Perform inversion operation\n";
+    std::cerr << "  -g, --gray                 : Perform grayscale conversion\n";
+    std::cerr << "  -f, --filter <input_file>  : Perform filter operation with the specified matrix file\n";
+    std::cerr << "  -k, --benchmark <value>    : Perform benchmark\n";
+    std::cerr << "  -o, --output <output_file> : Specify the output file name\n";
+}
 
 int main(int argc, char **argv) {
     static struct option long_options[] = {
@@ -29,8 +50,8 @@ int main(int argc, char **argv) {
             {"inv",       no_argument,       nullptr, 'i'},
             {"gray",      no_argument,       nullptr, 'g'},
             {"filter",    required_argument, nullptr, 'f'},
-            {"output",    required_argument, nullptr, 'o'},
             {"benchmark", required_argument, nullptr, 'k'},
+            {"output",    required_argument, nullptr, 'o'},
             {nullptr,     0,                 nullptr, 0}
     };
 
@@ -39,7 +60,7 @@ int main(int argc, char **argv) {
     std::string in_file;
 
     int c;
-    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igf:o:k", long_options, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igf:ko:", long_options, nullptr)) != -1) {
         switch (c) {
             case 'a':
                 imgProc.addOperation(ImageProcessor::ADD);
@@ -91,13 +112,14 @@ int main(int argc, char **argv) {
             case 'f':
                 imgProc.addOperation(ImageProcessor::FILTER);
                 break;
-            case 'o':
-                break;
             case 'k':
                 imgProc.addOperation(ImageProcessor::BENCH);
                 break;
+            case 'o':
+                imgProc.setOutputName(optarg);
+                break;
             default:
-                std::cerr << "Invalid usage!\n" << std::endl;
+                printUsage();
                 return -1;
         }
     }
@@ -105,14 +127,14 @@ int main(int argc, char **argv) {
 
     // Get the input file after parsing the options
     if (optind < argc) {
-        in_file = argv[optind];
+        imgProc.setInputFile(argv[optind]);
     } else {
-        std::cerr << "Missing input file argument!\n";
+        printUsage();
         return -3;
     }
 
     try {
-        imgProc.performOperations(in_file);
+        imgProc.performOperations();
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
         return -2;

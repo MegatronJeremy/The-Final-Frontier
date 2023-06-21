@@ -13,14 +13,14 @@ struct ExeTime<R(Args ...)> {
 public:
     explicit ExeTime(std::function<R(Args...)> func) : f_(func) {}
 
-    double operator()(Args ... args) {
+    time_t operator()(Args ... args) {
         auto start = std::chrono::system_clock::now();
         f_(args...);
         auto end = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
         std::cout << elapsed.count() << " ns" << std::endl;
 
-        return static_cast<double>(elapsed.count());
+        return elapsed.count();
     }
 
 private:
