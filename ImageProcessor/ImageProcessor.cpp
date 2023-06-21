@@ -6,186 +6,188 @@
 #include "../Predefined/Grayscale.hpp"
 #include "../Predefined/Inversion.hpp"
 
-ImageProcessor::ImageProcessor() {
-    ops = {
-            [this]() { add(); },
-            [this]() { sub(); },
-            [this]() { isub(); },
-            [this]() { mul(); },
-            [this]() { div(); },
-            [this]() { idiv(); },
-            [this]() { pow(); },
-            [this]() { log(); },
-            [this]() { abs(); },
-            [this]() { min(); },
-            [this]() { max(); },
-            [this]() { inv(); },
-            [this]() { grayscale(); },
-    };
-}
+std::map<ImageProcessor::OpEnum, ImageProcessor::OpType> ImageProcessor::opTypeMap = {
+        {ADD,    UCHAR},
+        {SUB,    UCHAR},
+        {ISUB,   UCHAR},
+        {MUL,    UCHAR},
+        {DIV,    UCHAR},
+        {IDIV,   UCHAR},
+        {POW,    DOUBLE},
+        {LOG,    NONE},
+        {ABS,    NONE},
+        {MIN,    UCHAR},
+        {MAX,    UCHAR},
+        {INV,    NONE},
+        {GRAY,   NONE},
+        {FILTER, STRING},
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::string> ImageProcessor::opNameMap = {
+        {ADD,    "ADD"},
+        {SUB,    "SUB"},
+        {ISUB,   "INVERSE SUB"},
+        {MUL,    "MUL"},
+        {DIV,    "DIV"},
+        {IDIV,   "INVERSE DIV"},
+        {POW,    "POW"},
+        {LOG,    "LOG"},
+        {ABS,    "ABS"},
+        {MIN,    "MIN"},
+        {MAX,    "MAX"},
+        {INV,    "INVERSION"},
+        {GRAY,   "GRAYSCALE"},
+        {FILTER, "FILTER"},
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              char)>> ImageProcessor::ucharOpRefFnMap{
+        {ADD,  add_ref},
+        {SUB,  sub_ref},
+        {ISUB, inv_sub_ref},
+        {MUL,  mul_ref},
+        {DIV,  div_ref},
+        {IDIV, inv_div_ref},
+        {MIN,  min_ref},
+        {MAX,  max_ref}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              char)>> ImageProcessor::ucharOpOptFnMap{
+        {ADD,  add_simd},
+        {SUB,  sub_simd},
+        {ISUB, inv_sub_simd},
+        {MUL,  mul_simd},
+        {DIV,  div_simd},
+        {IDIV, inv_div_simd},
+        {MIN,  min_simd},
+        {MAX,  max_simd}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              double)>> ImageProcessor::doubleOpFnMap{
+        {POW, pow_ref}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              double)>> ImageProcessor::doubleOpOptFnMap{
+        {POW, pow_simd}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>> ImageProcessor::predefOpFnMap{
+        {LOG,  log_ref},
+        {ABS,  abs_ref},
+        {INV,  inversion_ref},
+        {GRAY, grayscale_ref}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>> ImageProcessor::predefOpOptFnMap{
+        {LOG,  log_simd},
+        {ABS,  abs_simd},
+        {INV,  inversion_simd},
+        {GRAY, grayscale_simd}
+};
 
 void ImageProcessor::performOperations(const std::string &imgPath) {
-    this->imgRefSrc = Image{imgPath};
-    this->imgOptSrc = Image{imgPath};
-    this->imgRef = Image::createCanvas(imgRefSrc);
-    this->imgOpt = Image::createCanvas(imgOptSrc);
+    imgRefSrc = std::make_unique<Image>(imgPath);
+    imgOptSrc = std::make_unique<Image>(imgPath);
+    imgRef = std::make_unique<Image>(Image::createCanvas(*imgRefSrc));
+    imgOpt = std::make_unique<Image>(Image::createCanvas(*imgOptSrc));
 
     while (!opsQueue.empty()) {
-        OpEnum next = opsQueue.front();
+        OpEnum fnType = opsQueue.front();
         opsQueue.pop();
-        ops[next]();
-        std::swap(imgRef, imgRefSrc);
-        std::swap(imgOpt, imgOptSrc);
+
+        if (fnType == BENCH) {
+            performBenchmark();
+            continue;
+        }
+
+        switch (opTypeMap[fnType]) {
+            case UCHAR: {
+                uint8_t c = ucharOpQueue.front();
+                ucharOpQueue.pop();
+
+                performOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], c);
+            }
+                break;
+            case DOUBLE: {
+                double c = doubleOpQueue.front();
+                doubleOpQueue.pop();
+
+                performOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], c);
+            }
+                break;
+            case STRING: {
+            }
+                break;
+            case NONE: {
+                performOperation(predefOpFnMap[fnType], predefOpOptFnMap[fnType], opNameMap[fnType]);
+            }
+                break;
+            default:
+                throw std::runtime_error("Operation not recognized");
+        }
     }
 
-    imgRefSrc.save("ai1.jpg");
-    imgOptSrc.save("ai2.jpg");
+    printResults();
+
+    imgRefSrc->save("ai1.jpg");
+    imgOptSrc->save("ai2.jpg");
 }
 
-void ImageProcessor::add() {
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
+void ImageProcessor::performBenchmark() {
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << "\t\tPerforming benchmark" << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
 
-    double timeRef = make_decorator(add_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(add_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Add time shortened by " << timeRef / timeOpt << " times" << std::endl;
+    for (const auto &[fnType, opType]: opTypeMap) {
+        switch (opType) {
+            case UCHAR:
+                performOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], 100);
+                break;
+            case DOUBLE:
+                performOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], 1.1);
+                break;
+            case STRING:
+                performOperation(gaussian_blur_ref, gaussian_blur_mt_blocking, opNameMap[fnType]);
+                break;
+            case NONE:
+                performOperation(predefOpFnMap[fnType], predefOpOptFnMap[fnType], opNameMap[fnType]);
+                break;
+            default:
+                throw std::runtime_error("Operation not recognized");
+        }
+    }
+    std::cout << "\t\tBenchmark finished" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
 }
 
-void ImageProcessor::sub() {
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
+void ImageProcessor::printResults() const {
+    std::chrono::nanoseconds totalRefTimeNs(totalRefTime);
+    std::chrono::nanoseconds totalOptTimeNs(totalOptTime);
 
-    std::cout << "Unoptimized:\t";
-    double timeRef = make_decorator(sub_ref)(imgRefSrc, imgRef, c);
-    std::cout << "Optimized:\t";
-    double timeOpt = make_decorator(sub_simd)(imgOptSrc, imgOpt, c);
+    auto totalRefSec = std::chrono::duration_cast<std::chrono::seconds>(totalRefTimeNs);
+    auto totalRefMs = std::chrono::duration_cast<std::chrono::milliseconds>(totalRefTimeNs - totalRefSec);
+    auto totalRefNs = std::chrono::duration_cast<std::chrono::nanoseconds>(totalRefTimeNs - totalRefSec - totalRefMs);
 
-    std::cout << "Sub time shortened by " << timeRef / timeOpt << " times" << std::endl;
+    auto totalOptSec = std::chrono::duration_cast<std::chrono::seconds>(totalOptTimeNs);
+    auto totalOptMs = std::chrono::duration_cast<std::chrono::milliseconds>(totalOptTimeNs - totalOptSec);
+    auto totalOptNs = std::chrono::duration_cast<std::chrono::nanoseconds>(totalOptTimeNs - totalOptSec - totalOptMs);
+
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << "\t\tResults" << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << "Unoptimized\t";
+    std::cout << totalRefSec.count() << " s ";
+    std::cout << totalRefMs.count() << " ms ";
+    std::cout << totalRefNs.count() << " ns" << std::endl;
+    std::cout << "Optimized\t";
+    std::cout << totalOptSec.count() << " s ";
+    std::cout << totalOptMs.count() << " ms ";
+    std::cout << totalOptNs.count() << " ns" << std::endl;
+    std::cout << "Total time shortened " << static_cast<double>(totalRefTime) / static_cast<double>(totalOptTime)
+              << " times" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
 }
-
-void ImageProcessor::isub() {
-
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(sub_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(sub_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Inverse sub time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::mul() {
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(mul_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(mul_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Mul time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-
-}
-
-void ImageProcessor::div() {
-
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(div_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(div_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Div time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::idiv() {
-
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(inv_div_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(inv_div_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Inverse div time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::pow() {
-    double c = doubleOpQueue.front();
-    doubleOpQueue.pop();
-
-    double timeRef = make_decorator(pow_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(pow_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Pow time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::log() {
-    double timeRef = make_decorator(log_ref)(imgRefSrc, imgRef);
-    double timeOpt = make_decorator(log_simd)(imgOptSrc, imgOpt);
-
-    std::cout << "Log time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-
-}
-
-void ImageProcessor::abs() {
-    double timeRef = make_decorator(abs_ref)(imgRefSrc, imgRef);
-    double timeOpt = make_decorator(abs_simd)(imgOptSrc, imgOpt);
-
-    std::cout << "Abs time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::min() {
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(min_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(min_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Min time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-
-}
-
-void ImageProcessor::max() {
-    uint8_t c = charOpQueue.front();
-    charOpQueue.pop();
-
-    double timeRef = make_decorator(max_ref)(imgRefSrc, imgRef, c);
-    double timeOpt = make_decorator(max_simd)(imgOptSrc, imgOpt, c);
-
-    std::cout << "Max time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::inv() {
-    double timeRef = make_decorator(inversion_ref)(imgRefSrc, imgRef);
-    double timeOpt = make_decorator(inversion_simd)(imgOptSrc, imgOpt);
-
-    std::cout << "Inversion time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::grayscale() {
-    double timeRef = make_decorator(grayscale_ref)(imgRefSrc, imgRef);
-    double timeOpt = make_decorator(grayscale_simd)(imgOptSrc, imgOpt);
-
-    std::cout << "Grayscale time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-
-void ImageProcessor::filter() {
-    double timeRef = make_decorator(gaussian_blur_ref)(imgRefSrc, imgRef);
-    double timeOpt = make_decorator(gaussian_blur_mt_blocking)(imgOptSrc, imgOpt);
-
-    std::cout << "Filter time shortened by " << timeRef / timeOpt << " times" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-}
-

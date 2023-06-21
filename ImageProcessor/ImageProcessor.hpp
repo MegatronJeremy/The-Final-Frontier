@@ -6,12 +6,13 @@
 #include <queue>
 #include <functional>
 #include <memory>
+#include <iostream>
+#include <unordered_map>
+#include <map>
 
 
 class ImageProcessor {
 public:
-    ImageProcessor();
-
     enum OpEnum {
         ADD = 0,
         SUB,
@@ -27,7 +28,35 @@ public:
         INV,
         GRAY,
         FILTER,
+        BENCH,
     };
+
+    enum OpType {
+        NONE,
+        UCHAR,
+        DOUBLE,
+        STRING,
+    };
+
+    static std::map<OpEnum, OpType> opTypeMap;
+
+    static std::unordered_map<OpEnum, std::string> opNameMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, char)>> ucharOpRefFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, char)>> ucharOpOptFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, double)>> doubleOpFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, double)>> doubleOpOptFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &)>> predefOpFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &)>> predefOpOptFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, std::string)>> strOpFnMap;
+
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, std::string)>> strOpOptFnMap;
 
     typedef std::function<void()> Operation;
 
@@ -36,52 +65,55 @@ public:
     }
 
     void addOperand(long op) {
-        charOpQueue.push(op);
+        ucharOpQueue.push(op);
     }
 
     void addOperand(double op) {
         doubleOpQueue.push(op);
     }
 
+    void addMatrixPath(const std::string &path) {
+        pathQueue.push(path);
+    }
+
     void performOperations(const std::string &imagePath);
 
-private:
-    void add();
-
-    void sub();
-
-    void isub();
-
-    void mul();
-
-    void div();
-
-    void idiv();
-
-    void pow();
-
-    void log();
-
-    void abs();
-
-    void min();
-
-    void max();
-
-    void inv();
-
-    void grayscale();
-
-    void filter();
+    void printResults() const;
 
 private:
-    Image imgRefSrc;
-    Image imgOptSrc;
-    Image imgRef;
-    Image imgOpt;
+    template<typename RefOp, typename OptOp, typename... Args>
+    void performOperation(const RefOp &refOp, const OptOp &optOp, const std::string &opName,
+                          Args &&...args) {
+        std::cout << "Unoptimized\t";
+        double timeRef = make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
+        std::cout << "Optimized\t";
+        double timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
+
+        std::cout << opName << " time shortened " << timeRef / timeOpt << " times" << std::endl;
+        std::cout << "-------------------------------------------------------" << std::endl;
+
+        totalRefTime += timeRef;
+        totalOptTime += timeOpt;
+
+        std::swap(imgRef, imgRefSrc);
+        std::swap(imgOpt, imgOptSrc);
+    }
+
+    time_t totalRefTime = 0;
+    time_t totalOptTime = 0;
+
+    void performBenchmark();
+
+    std::unique_ptr<Image> imgRefSrc;
+    std::unique_ptr<Image> imgOptSrc;
+    std::unique_ptr<Image> imgRef;
+    std::unique_ptr<Image> imgOpt;
+
+    std::vector<Operation> ops;
 
     std::queue<OpEnum> opsQueue;
-    std::vector<Operation> ops;
-    std::queue<uint8_t> charOpQueue;
+    std::queue<uint8_t> ucharOpQueue;
     std::queue<double> doubleOpQueue;
+    std::queue<std::string> pathQueue;
+
 };

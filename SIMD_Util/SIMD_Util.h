@@ -111,7 +111,9 @@ log_epi8(const __m128i &a, const __m256 &c) {
 }
 
 extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__))
-pow_epi8(const __m128i &a, const __m256 &b, const __m256 &clamp, const __m256 &add) {
+pow_epi8(const __m128i &a, const __m256 &b) {
+    static const __m256 clamp = _mm256_set1_ps(UCHAR_MAX);
+    static const __m256 one = _mm256_set1_ps(1);
     //
     // Convert to 16-bit integers
     //
@@ -130,9 +132,9 @@ pow_epi8(const __m128i &a, const __m256 &b, const __m256 &clamp, const __m256 &a
     //
     // Perform the operation
     //
-    // pow(x, y) = exp(log(x)*y) with saturation
-    __m256 hi = log256_ps(_mm256_add_ps(a_hi, add));
-    __m256 lo = log256_ps(_mm256_add_ps(a_lo, add));
+    // performPow(x, y) = exp(performLog(x)*y) with saturation
+    __m256 hi = log256_ps(_mm256_add_ps(a_hi, one));
+    __m256 lo = log256_ps(_mm256_add_ps(a_lo, one));
     hi = _mm256_mul_ps(hi, b);
     lo = _mm256_mul_ps(lo, b);
     hi = exp256_ps(hi);

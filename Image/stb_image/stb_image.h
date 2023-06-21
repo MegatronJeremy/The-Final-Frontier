@@ -589,7 +589,7 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 #include <limits.h>
 
 #if !defined(STBI_NO_LINEAR) || !defined(STBI_NO_HDR)
-#include <math.h>  // ldexp, pow
+#include <math.h>  // ldexp, performPow
 #endif
 
 #ifndef STBI_NO_STDIO
@@ -1012,7 +1012,7 @@ static int stbi__addsizes_valid(int a, int b)
 static int stbi__mul2sizes_valid(int a, int b)
 {
    if (a < 0 || b < 0) return 0;
-   if (b == 0) return 1; // mul-by-0 is always safe
+   if (b == 0) return 1; // performMul-by-0 is always safe
    // portable way to check for no overflows in a*b
    return a <= INT_MAX/b;
 }
@@ -2554,7 +2554,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       __m128i out##_l = _mm_add_epi32(a##_l, b##_l); \
       __m128i out##_h = _mm_add_epi32(a##_h, b##_h)
 
-   // wide sub
+   // wide performSub
    #define dct_wsub(out, a, b) \
       __m128i out##_l = _mm_sub_epi32(a##_l, b##_l); \
       __m128i out##_h = _mm_sub_epi32(a##_h, b##_h)
@@ -2735,12 +2735,12 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
    int32x4_t out##_l = vshll_n_s16(vget_low_s16(inq), 12); \
    int32x4_t out##_h = vshll_n_s16(vget_high_s16(inq), 12)
 
-// wide add
+// wide performAdd
 #define dct_wadd(out, a, b) \
    int32x4_t out##_l = vaddq_s32(a##_l, b##_l); \
    int32x4_t out##_h = vaddq_s32(a##_h, b##_h)
 
-// wide sub
+// wide performSub
 #define dct_wsub(out, a, b) \
    int32x4_t out##_l = vsubq_s32(a##_l, b##_l); \
    int32x4_t out##_h = vsubq_s32(a##_h, b##_h)
@@ -3592,7 +3592,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       int16x8_t nears = vreinterpretq_s16_u16(vshll_n_u8(nearb, 2));
       int16x8_t curr  = vaddq_s16(nears, diff); // current row
 
-      // horizontal filter works the same based on shifted vers of current
+      // horizontal performFilter works the same based on shifted vers of current
       // row. "prev" is current row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
       // "next" is current row shifted left by 1 pixel, with first pixel
@@ -4780,7 +4780,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
          stbi_uc *in  = a->out + stride*j + x*out_n - img_width_bytes;
          // unpack 1/2/4-bit into a 8-bit buffer. allows us to keep the common 8-bit path optimal at minimal cost for 1/2/4-bit
          // png guarante byte alignment, if width is not multiple of 8/4/2 we'll decode dummy trailing data that will be skipped in the later loop
-         stbi_uc scale = (color == 0) ? stbi__depth_scale_table[depth] : 1; // scale grayscale values to 0..255 range
+         stbi_uc scale = (color == 0) ? stbi__depth_scale_table[depth] : 1; // scale performGrayscale values to 0..255 range
 
          // note that the final byte might overshoot and write more data than desired.
          // we can allocate enough data that this never writes out of memory, but it
@@ -5380,11 +5380,11 @@ static int stbi__high_bit(unsigned int z)
 
 static int stbi__bitcount(unsigned int a)
 {
-   a = (a & 0x55555555) + ((a >>  1) & 0x55555555); // max 2
-   a = (a & 0x33333333) + ((a >>  2) & 0x33333333); // max 4
-   a = (a + (a >> 4)) & 0x0f0f0f0f; // max 8 per 4, now 8 bits
-   a = (a + (a >> 8)); // max 16 per 8 bits
-   a = (a + (a >> 16)); // max 32 per 8 bits
+   a = (a & 0x55555555) + ((a >>  1) & 0x55555555); // performMax 2
+   a = (a & 0x33333333) + ((a >>  2) & 0x33333333); // performMax 4
+   a = (a + (a >> 4)) & 0x0f0f0f0f; // performMax 8 per 4, now 8 bits
+   a = (a + (a >> 8)); // performMax 16 per 8 bits
+   a = (a + (a >> 16)); // performMax 32 per 8 bits
    return a & 0xff;
 }
 
@@ -5477,7 +5477,7 @@ static void *stbi__bmp_parse_header(stbi__context *s, stbi__bmp_data *info)
       stbi__get32le(s); // discard hres
       stbi__get32le(s); // discard vres
       stbi__get32le(s); // discard colorsused
-      stbi__get32le(s); // discard max important
+      stbi__get32le(s); // discard performMax important
       if (hsz == 40 || hsz == 56) {
          if (hsz == 56) {
             stbi__get32le(s);
@@ -5564,8 +5564,8 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
       // accept some number of extra bytes after the header, but if the offset points either to before
       // the header ends or implies a large amount of extra data, reject the file as malformed
       int bytes_read_so_far = s->callback_already_read + (int)(s->img_buffer - s->img_buffer_original);
-      int header_limit = 1024; // max we actually read is below 256 bytes currently.
-      int extra_data_limit = 256*4; // what ordinarily goes here is a palette; 256 entries*4 bytes is its max size.
+      int header_limit = 1024; // performMax we actually read is below 256 bytes currently.
+      int extra_data_limit = 256*4; // what ordinarily goes here is a palette; 256 entries*4 bytes is its performMax size.
       if (bytes_read_so_far <= 0 || bytes_read_so_far > header_limit) {
          return stbi__errpuc("bad header", "Corrupt BMP");
       }
@@ -7611,9 +7611,9 @@ static int      stbi__pnm_info(stbi__context *s, int *x, int *y, int *comp)
        return stbi__err("invalid width", "PPM image header had zero or overflowing width");
    stbi__pnm_skip_whitespace(s, &c);
 
-   maxv = stbi__pnm_getinteger(s, &c);  // read max value
+   maxv = stbi__pnm_getinteger(s, &c);  // read performMax value
    if (maxv > 65535)
-      return stbi__err("max value > 65535", "PPM image supports only 8-bit and 16-bit images");
+      return stbi__err("performMax value > 65535", "PPM image supports only 8-bit and 16-bit images");
    else if (maxv > 255)
       return 16;
    else
@@ -7840,7 +7840,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
       1.39  (2014-06-15)
               fix to TGA optimization when req_comp != number of components in TGA;
               fix to GIF loading because BMP wasn't rewinding (whoops, no GIFs in my test suite)
-              add support for BMP version 5 (more ignored fields)
+              performAdd support for BMP version 5 (more ignored fields)
       1.38  (2014-06-06)
               suppress MSVC warnings on integer casts truncating values
               fix accidental rename of 'skip' field of I/O

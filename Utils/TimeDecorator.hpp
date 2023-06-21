@@ -28,6 +28,11 @@ private:
 };
 
 template<class R, class... Args>
-ExeTime<R(Args ...)> make_decorator(R (*f)(Args ...)) {
+ExeTime<R(Args ...)> make_time_decorator(R (*f)(Args ...)) {
+    return ExeTime<R(Args...)>(std::function<R(Args...)>(f));
+}
+
+template<class R, class... Args>
+ExeTime<R(Args ...)> make_time_decorator(std::function<R(Args ...)> f) {
     return ExeTime<R(Args...)>(std::function<R(Args...)>(f));
 }

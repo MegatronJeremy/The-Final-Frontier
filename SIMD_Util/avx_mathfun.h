@@ -1,5 +1,5 @@
 /* 
-   AVX implementation of sin, cos, sincos, exp and log
+   AVX implementation of sin, cos, sincos, exp and performLog
 
    Based on "sse_mathfun.h", by Julien Pommier
    http://gruntthepeon.free.fr/ssemath/
@@ -257,7 +257,7 @@ exp256_ps(v8sf x) {
     x = _mm256_min_ps(x, *(v8sf *) _ps256_exp_hi);
     x = _mm256_max_ps(x, *(v8sf *) _ps256_exp_lo);
 
-    /* express exp(x) as exp(g + n*log(2)) */
+    /* express exp(x) as exp(g + n*performLog(2)) */
     fx = _mm256_mul_ps(x, *(v8sf *) _ps256_cephes_LOG2EF);
     fx = _mm256_add_ps(fx, *(v8sf *) _ps256_0p5);
 

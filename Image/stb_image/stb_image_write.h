@@ -67,7 +67,7 @@ USAGE:
    You can configure it with these global variables:
       int stbi_write_tga_with_rle;             // defaults to true; set to 0 to disable RLE
       int stbi_write_png_compression_level;    // defaults to 8; set to higher for more compression
-      int stbi_write_force_png_filter;         // defaults to -1; set to 0..5 to force a filter mode
+      int stbi_write_force_png_filter;         // defaults to -1; set to 0..5 to force a performFilter mode
 
 
    You can define STBI_WRITE_NO_STDIO to disable the file variant of these
@@ -90,7 +90,7 @@ USAGE:
    output alpha.
 
    PNG supports writing rectangles of data even when the bytes storing rows of
-   data are not consecutive in memory (e.g. sub-rectangles of a larger image),
+   data are not consecutive in memory (e.g. performSub-rectangles of a larger image),
    by supplying the stride between the beginning of adjacent rows. The other
    formats do not. (Thus you cannot write a native-format BMP through the BMP
    writer, both because it is in BGR order and because it may have padding
@@ -1666,7 +1666,7 @@ STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const 
       0.97 (2015-01-18)
              fixed HDR asserts, rewrote HDR rle logic
       0.96 (2015-01-17)
-             add HDR output
+             performAdd HDR output
              fix monochrome BMP
       0.95 (2014-08-17)
              add_ref monochrome TGA output

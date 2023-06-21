@@ -20,7 +20,7 @@ void pow_ref(Image &src, Image &dst, double c) {
 
 void log_ref(Image &src, Image &dst) {
     // c - scaling constant
-    double c = 255.0 / log(1 + 255); // max value is 255
+    double c = 255.0 / log(1 + 255); // performMax value is 255
     for (size_t i = 0; i < src.rgbSize; i++) {
         dst.R[i] = static_cast<uint8_t>(c * log(src.R[i] + 1));
         dst.G[i] = static_cast<uint8_t>(c * log(src.G[i] + 1));

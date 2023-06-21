@@ -3,7 +3,7 @@ project(TheFinalFrontier)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMakeLists.txt} -O2 -march=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -march=native")
 
 add_executable(TheFinalFrontier
         main.cpp

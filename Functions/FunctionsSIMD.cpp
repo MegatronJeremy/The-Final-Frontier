@@ -10,8 +10,6 @@
 
 void pow_simd(Image &src, Image &dst, double c) {
     const __m256 y = _mm256_set1_ps(c);
-    const __m256 uchar_max = _mm256_set1_ps(UCHAR_MAX);
-    const __m256 one = _mm256_set1_ps(1);
 
     const auto *RP = reinterpret_cast<const __m128i *>(src.R.data());
     const auto *GP = reinterpret_cast<const __m128i *>(src.G.data());
@@ -29,9 +27,9 @@ void pow_simd(Image &src, Image &dst, double c) {
         __m128i g = _mm_load_si128(GP + i);
         __m128i b = _mm_load_si128(BP + i);
 
-        r = pow_epi8(r, y, uchar_max, one);
-        g = pow_epi8(g, y, uchar_max, one);
-        b = pow_epi8(b, y, uchar_max, one);
+        r = pow_epi8(r, y);
+        g = pow_epi8(g, y);
+        b = pow_epi8(b, y);
 
         _mm_store_si128(nRP + i, r);
         _mm_store_si128(nGP + i, g);
@@ -56,7 +54,7 @@ void pow_simd(Image &src, Image &dst, double c) {
 }
 
 void log_simd(Image &src, Image &dst) {
-    double c = 255.0 / log(1 + 255); // max value is 255
+    double c = 255.0 / log(1 + 255); // performMax value is 255
     const __m256 coeff = _mm256_set1_ps(c);
 
     const auto *RP = reinterpret_cast<const __m128i *>(src.R.data());
