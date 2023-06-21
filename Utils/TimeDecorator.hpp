@@ -18,7 +18,6 @@ public:
         f_(args...);
         auto end = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-        std::cout << elapsed.count() << " ns" << std::endl;
 
         return elapsed.count();
     }

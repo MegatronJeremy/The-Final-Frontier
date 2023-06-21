@@ -89,10 +89,11 @@ private:
     template<typename RefOp, typename OptOp, typename... Args>
     void performOperation(const RefOp &refOp, const OptOp &optOp, const std::string &opName,
                           Args &&...args) {
-        std::cout << "Unoptimized\t";
         time_t timeRef = make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
-        std::cout << "Optimized\t";
         time_t timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
+
+        std::cout << "Unoptimized\t" << timeRef << " ns" << std::endl;
+        std::cout << "Optimized\t" << timeOpt << " ns" << std::endl;
 
         std::cout << opName << " time shortened " << static_cast<double>(timeRef) / static_cast<double>(timeOpt)
                   << " times" << std::endl;
@@ -100,6 +101,36 @@ private:
 
         totalRefTime += timeRef;
         totalOptTime += timeOpt;
+
+        std::swap(imgRefSrc, imgRef);
+        std::swap(imgOptSrc, imgOpt);
+    }
+
+    template<typename RefOp, typename OptOp, typename... Args>
+    void performNormalizedOperation(const RefOp &refOp, const OptOp &optOp, const std::string &opName,
+                                    Args &&...args) {
+        const int N = 5;
+
+        time_t timeRefAvg = 0;
+        time_t timeOptAvg = 0;
+
+        for (int i = 0; i < N; i++) {
+            timeRefAvg += make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
+            timeOptAvg += make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
+        }
+
+        timeRefAvg /= N;
+        timeOptAvg /= N;
+
+        std::cout << "Unoptimized\t" << timeRefAvg << " ns" << std::endl;
+        std::cout << "Optimized\t" << timeOptAvg << " ns" << std::endl;
+
+        std::cout << opName << " time shortened " << static_cast<double>(timeRefAvg) / static_cast<double>(timeOptAvg)
+                  << " times" << std::endl;
+        std::cout << "-------------------------------------------------------" << std::endl;
+
+        totalRefTime += timeRefAvg / N;
+        totalOptTime += timeOptAvg / N;
 
         std::swap(imgRefSrc, imgRef);
         std::swap(imgOptSrc, imgOpt);

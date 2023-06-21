@@ -171,16 +171,16 @@ void ImageProcessor::performBenchmark() {
     for (const auto &[fnType, opType]: opTypeMap) {
         switch (opType) {
             case UCHAR:
-                performOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], 100);
+                performNormalizedOperation(ucharOpRefFnMap[fnType], ucharOpOptFnMap[fnType], opNameMap[fnType], 100);
                 break;
             case DOUBLE:
-                performOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], 1.1);
+                performNormalizedOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], 1.1);
                 break;
             case MATRIX:
-                performOperation(gaussian_blur_ref, gaussian_blur_mt_blocking, opNameMap[fnType]);
+                performNormalizedOperation(gaussian_blur_ref, gaussian_blur_mt_blocking, opNameMap[fnType]);
                 break;
             case NONE:
-                performOperation(predefOpFnMap[fnType], predefOpOptFnMap[fnType], opNameMap[fnType]);
+                performNormalizedOperation(predefOpFnMap[fnType], predefOpOptFnMap[fnType], opNameMap[fnType]);
                 break;
             default:
                 throw std::runtime_error("Operation not recognized");
