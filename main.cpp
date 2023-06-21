@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
                 break;
             case 'f':
                 imgProc.addOperation(ImageProcessor::FILTER);
+                imgProc.addMatrixPath(optarg);
                 break;
             case 'k':
                 imgProc.addOperation(ImageProcessor::BENCH);

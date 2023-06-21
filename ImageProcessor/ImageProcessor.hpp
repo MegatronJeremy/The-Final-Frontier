@@ -36,7 +36,7 @@ public:
         NONE,
         UCHAR,
         DOUBLE,
-        STRING,
+        MATRIX,
     };
 
     static std::map<OpEnum, OpType> opTypeMap;
@@ -55,9 +55,9 @@ public:
 
     static std::unordered_map<OpEnum, std::function<void(Image &, Image &)>> predefOpOptFnMap;
 
-    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, std::string)>> strOpFnMap;
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, const double *, int)>> matrixOpFnMap;
 
-    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, std::string)>> strOpOptFnMap;
+    static std::unordered_map<OpEnum, std::function<void(Image &, Image &, const double *, int)>> matrixOpOptFnMap;
 
     typedef std::function<void()> Operation;
 
@@ -108,6 +108,8 @@ private:
     void performBenchmark();
 
     void saveImage();
+
+    static std::pair<size_t, std::vector<double>> loadMatrix(const std::string &fileName);
 
     std::string imageName;
 

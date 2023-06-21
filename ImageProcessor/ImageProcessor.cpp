@@ -7,23 +7,24 @@
 #include "../Predefined/Inversion.hpp"
 
 #include <filesystem>
+#include <fstream>
 
 std::map<ImageProcessor::OpEnum, ImageProcessor::OpType> ImageProcessor::opTypeMap = {
-        {ADD, UCHAR},
-        {SUB, UCHAR},
-        {ISUB, UCHAR},
-        {MUL, UCHAR},
-        {DIV, UCHAR},
-        {IDIV, UCHAR},
-        {POW, DOUBLE},
-        {LOG, NONE},
-        {ABS, NONE},
-        {MIN, UCHAR},
-        {MAX, UCHAR},
-        {INV, NONE},
-        {GRAY, NONE},
-        {SOBEL, NONE},
-        {FILTER, STRING},
+        {ADD,    UCHAR},
+        {SUB,    UCHAR},
+        {ISUB,   UCHAR},
+        {MUL,    UCHAR},
+        {DIV,    UCHAR},
+        {IDIV,   UCHAR},
+        {POW,    DOUBLE},
+        {LOG,    NONE},
+        {ABS,    NONE},
+        {MIN,    UCHAR},
+        {MAX,    UCHAR},
+        {INV,    NONE},
+        {GRAY,   NONE},
+        {SOBEL,  NONE},
+        {FILTER, MATRIX},
 };
 
 std::unordered_map<ImageProcessor::OpEnum, std::string> ImageProcessor::opNameMap = {
@@ -94,6 +95,17 @@ std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>
         {SOBEL, sobel_mt_blocking},
 };
 
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              const double *, int)>> ImageProcessor::matrixOpFnMap{
+        {FILTER, filter_ref}
+};
+
+std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
+                                                              const double *, int)>> ImageProcessor::matrixOpOptFnMap{
+        {FILTER, filter_mt_blocking}
+};
+
+
 void ImageProcessor::performOperations() {
     imgRefSrc = std::make_unique<Image>(imgPath);
     imgOptSrc = std::make_unique<Image>(imgPath);
@@ -128,7 +140,13 @@ void ImageProcessor::performOperations() {
                 performOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], c);
             }
                 break;
-            case STRING: {
+            case MATRIX: {
+                std::string path = pathQueue.front();
+                pathQueue.pop();
+
+                auto [N, matrix] = loadMatrix(path);
+
+                performOperation(matrixOpFnMap[fnType], matrixOpOptFnMap[fnType], opNameMap[fnType], matrix.data(), N);
             }
                 break;
             case NONE: {
@@ -158,7 +176,7 @@ void ImageProcessor::performBenchmark() {
             case DOUBLE:
                 performOperation(doubleOpFnMap[fnType], doubleOpOptFnMap[fnType], opNameMap[fnType], 1.1);
                 break;
-            case STRING:
+            case MATRIX:
                 performOperation(gaussian_blur_ref, gaussian_blur_mt_blocking, opNameMap[fnType]);
                 break;
             case NONE:
@@ -217,4 +235,40 @@ void ImageProcessor::saveImage() {
 
 void ImageProcessor::setInputFile(const std::string &path) {
     imgPath = path;
+}
+
+std::pair<size_t, std::vector<double>> ImageProcessor::loadMatrix(const std::string &fileName) {
+    std::ifstream file("Kernels/" + fileName);
+    std::string line;
+
+    std::vector<double> matrix;
+    size_t N;
+
+    if (!file) {
+        throw std::runtime_error("Failed to open file: ");
+    }
+
+    if (std::getline(file, line)) {
+        std::istringstream iss(line);
+        iss >> N;
+    } else {
+        throw std::runtime_error("Invalid N in input matrix");
+    }
+
+    size_t i = N * N;
+    while (i != 0) {
+        if (!std::getline(file, line)) {
+            throw std::runtime_error("Invalid input matrix size");
+        }
+
+        std::istringstream iss(line);
+        double value;
+
+        while (i != 0 && iss >> value) {
+            matrix.push_back(value);
+            i--;
+        }
+    }
+
+    return {N, matrix};
 }
