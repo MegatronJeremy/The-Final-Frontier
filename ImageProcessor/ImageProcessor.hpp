@@ -129,8 +129,8 @@ private:
                   << " times" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
-        totalRefTime += timeRefAvg / N;
-        totalOptTime += timeOptAvg / N;
+        totalRefTime += timeRefAvg;
+        totalOptTime += timeOptAvg;
 
         std::swap(imgRefSrc, imgRef);
         std::swap(imgOptSrc, imgOpt);
