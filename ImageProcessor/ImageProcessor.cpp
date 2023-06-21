@@ -9,19 +9,20 @@
 #include <filesystem>
 
 std::map<ImageProcessor::OpEnum, ImageProcessor::OpType> ImageProcessor::opTypeMap = {
-        {ADD,    UCHAR},
-        {SUB,    UCHAR},
-        {ISUB,   UCHAR},
-        {MUL,    UCHAR},
-        {DIV,    UCHAR},
-        {IDIV,   UCHAR},
-        {POW,    DOUBLE},
-        {LOG,    NONE},
-        {ABS,    NONE},
-        {MIN,    UCHAR},
-        {MAX,    UCHAR},
-        {INV,    NONE},
-        {GRAY,   NONE},
+        {ADD, UCHAR},
+        {SUB, UCHAR},
+        {ISUB, UCHAR},
+        {MUL, UCHAR},
+        {DIV, UCHAR},
+        {IDIV, UCHAR},
+        {POW, DOUBLE},
+        {LOG, NONE},
+        {ABS, NONE},
+        {MIN, UCHAR},
+        {MAX, UCHAR},
+        {INV, NONE},
+        {GRAY, NONE},
+        {SOBEL, NONE},
         {FILTER, STRING},
 };
 
@@ -39,6 +40,7 @@ std::unordered_map<ImageProcessor::OpEnum, std::string> ImageProcessor::opNameMa
         {MAX,    "MAX"},
         {INV,    "INVERSION"},
         {GRAY,   "GRAYSCALE"},
+        {SOBEL,  "SOBEL FILTER"},
         {FILTER, "FILTER"},
 };
 
@@ -77,17 +79,19 @@ std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
 };
 
 std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>> ImageProcessor::predefOpFnMap{
-        {LOG,  log_ref},
-        {ABS,  abs_ref},
-        {INV,  inversion_ref},
-        {GRAY, grayscale_ref}
+        {LOG,   log_ref},
+        {ABS,   abs_ref},
+        {INV,   inversion_ref},
+        {GRAY,  grayscale_ref},
+        {SOBEL, sobel_ref},
 };
 
 std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &)>> ImageProcessor::predefOpOptFnMap{
-        {LOG,  log_simd},
-        {ABS,  abs_simd},
-        {INV,  inversion_simd},
-        {GRAY, grayscale_simd}
+        {LOG,   log_simd},
+        {ABS,   abs_simd},
+        {INV,   inversion_simd},
+        {GRAY,  grayscale_simd},
+        {SOBEL, sobel_mt_blocking},
 };
 
 void ImageProcessor::performOperations() {

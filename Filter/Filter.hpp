@@ -12,7 +12,9 @@ void filter_ref(Image &src, Image &dst, const double *kernel, int N);
 
 void filter_mt_blocking(Image &src, Image &dst, const double *kernel, int N);
 
-void sobel(Image &src, Image &dst);
+void sobel_ref(Image &src, Image &dst);
+
+void sobel_mt_blocking(Image &src, Image &dst);
 
 void gaussian_blur_ref(Image &src, Image &dst);
 

@@ -27,6 +27,7 @@ public:
         MAX,
         INV,
         GRAY,
+        SOBEL,
         FILTER,
         BENCH,
     };
@@ -93,14 +94,15 @@ private:
         std::cout << "Optimized\t";
         time_t timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
 
-        std::cout << opName << " time shortened " << static_cast<double>(timeRef) / timeOpt << " times" << std::endl;
+        std::cout << opName << " time shortened " << static_cast<double>(timeRef) / static_cast<double>(timeOpt)
+                  << " times" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
         totalRefTime += timeRef;
         totalOptTime += timeOpt;
 
-        std::swap(imgRef, imgRefSrc);
-        std::swap(imgOpt, imgOptSrc);
+        std::swap(imgRefSrc, imgRef);
+        std::swap(imgOptSrc, imgOpt);
     }
 
     void performBenchmark();
@@ -118,8 +120,6 @@ private:
     std::unique_ptr<Image> imgOptSrc;
     std::unique_ptr<Image> imgRef;
     std::unique_ptr<Image> imgOpt;
-
-    std::vector<Operation> ops;
 
     std::queue<OpEnum> opsQueue;
     std::queue<uint8_t> ucharOpQueue;

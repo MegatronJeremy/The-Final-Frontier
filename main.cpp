@@ -29,6 +29,7 @@ void printUsage() {
     std::cerr << "  -x, --max <value>          : Perform maximum operation with the specified value\n";
     std::cerr << "  -i, --inv                  : Perform inversion operation\n";
     std::cerr << "  -g, --gray                 : Perform grayscale conversion\n";
+    std::cerr << "  -e, --sobel                : Perform sobel_ref filter operation\n";
     std::cerr << "  -f, --filter <input_file>  : Perform filter operation with the specified matrix file\n";
     std::cerr << "  -k, --benchmark <value>    : Perform benchmark\n";
     std::cerr << "  -o, --output <output_file> : Specify the output file name\n";
@@ -49,6 +50,7 @@ int main(int argc, char **argv) {
             {"max",       required_argument, nullptr, 'x'},
             {"inv",       no_argument,       nullptr, 'i'},
             {"gray",      no_argument,       nullptr, 'g'},
+            {"sobel",     no_argument,       nullptr, 'e'},
             {"filter",    required_argument, nullptr, 'f'},
             {"benchmark", required_argument, nullptr, 'k'},
             {"output",    required_argument, nullptr, 'o'},
@@ -60,7 +62,7 @@ int main(int argc, char **argv) {
     std::string in_file;
 
     int c;
-    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igf:ko:", long_options, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igef:ko:", long_options, nullptr)) != -1) {
         switch (c) {
             case 'a':
                 imgProc.addOperation(ImageProcessor::ADD);
@@ -108,6 +110,9 @@ int main(int argc, char **argv) {
                 break;
             case 'g':
                 imgProc.addOperation(ImageProcessor::GRAY);
+                break;
+            case 'e':
+                imgProc.addOperation(ImageProcessor::SOBEL);
                 break;
             case 'f':
                 imgProc.addOperation(ImageProcessor::FILTER);

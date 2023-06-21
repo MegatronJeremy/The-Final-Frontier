@@ -3538,7 +3538,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
    t1 = 3*in_near[0] + in_far[0];
    // process groups of 8 pixels for as long as we can.
    // note we can't handle the last pixel in a row in this loop
-   // because we need to handle the sobel boundary conditions.
+   // because we need to handle the sobel_ref boundary conditions.
    for (; i < ((w-1) & ~7); i += 8) {
 #if defined(STBI_SSE2)
       // load and perform the vertical filtering pass
@@ -3552,7 +3552,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       __m128i nears = _mm_slli_epi16(nearw, 2);
       __m128i curr  = _mm_add_epi16(nears, diff); // current row
 
-      // horizontal sobel works the same based on shifted vers of current
+      // horizontal sobel_ref works the same based on shifted vers of current
       // row. "prev" is current row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
       // "next" is current row shifted left by 1 pixel, with first pixel
@@ -3562,7 +3562,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       __m128i prev = _mm_insert_epi16(prv0, t1, 0);
       __m128i next = _mm_insert_epi16(nxt0, 3*in_near[i+8] + in_far[i+8], 7);
 
-      // horizontal sobel, polyphase implementation since it's convenient:
+      // horizontal sobel_ref, polyphase implementation since it's convenient:
       // even pixels = 3*cur + prev = cur*4 + (prev - cur)
       // odd  pixels = 3*cur + next = cur*4 + (next - cur)
       // note the shared term.
@@ -3602,7 +3602,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       int16x8_t prev = vsetq_lane_s16(t1, prv0, 0);
       int16x8_t next = vsetq_lane_s16(3*in_near[i+8] + in_far[i+8], nxt0, 7);
 
-      // horizontal sobel, polyphase implementation since it's convenient:
+      // horizontal sobel_ref, polyphase implementation since it's convenient:
       // even pixels = 3*cur + prev = cur*4 + (prev - cur)
       // odd  pixels = 3*cur + next = cur*4 + (next - cur)
       // note the shared term.
@@ -4679,7 +4679,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
       int filter = *raw++;
 
       if (filter > 4)
-         return stbi__err("invalid sobel","Corrupt PNG");
+         return stbi__err("invalid sobel_ref","Corrupt PNG");
 
       if (depth < 8) {
          if (img_width_bytes > x) return stbi__err("invalid width","Corrupt PNG");
@@ -4689,7 +4689,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
       }
       prior = cur - stride; // bugfix: need to compute this after 'cur +=' computation above
 
-      // if first row, use special sobel that doesn't sample previous row
+      // if first row, use special sobel_ref that doesn't sample previous row
       if (j == 0) filter = first_row_filter[filter];
 
       // handle first byte explicitly
@@ -4732,7 +4732,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
              case f:     \
                 for (k=0; k < nk; ++k)
          switch (filter) {
-            // "none" sobel turns into a memcpy here; make that explicit.
+            // "none" sobel_ref turns into a memcpy here; make that explicit.
             case STBI__F_none:         memcpy(cur, raw, nk); break;
             STBI__CASE(STBI__F_sub)          { cur[k] = STBI__BYTECAST(raw[k] + cur[k-filter_bytes]); } break;
             STBI__CASE(STBI__F_up)           { cur[k] = STBI__BYTECAST(raw[k] + prior[k]); } break;
@@ -5114,7 +5114,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
             if (color == 3 && z->depth == 16)                  return stbi__err("bad ctype","Corrupt PNG");
             if (color == 3) pal_img_n = 3; else if (color & 1) return stbi__err("bad ctype","Corrupt PNG");
             comp  = stbi__get8(s);  if (comp) return stbi__err("bad comp method","Corrupt PNG");
-            filter= stbi__get8(s);  if (filter) return stbi__err("bad sobel method","Corrupt PNG");
+            filter= stbi__get8(s);  if (filter) return stbi__err("bad sobel_ref method","Corrupt PNG");
             interlace = stbi__get8(s); if (interlace>1) return stbi__err("bad interlace method","Corrupt PNG");
             if (!s->img_x || !s->img_y) return stbi__err("0-pixel image","Corrupt PNG");
             if (!pal_img_n) {
@@ -5122,7 +5122,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
                if ((1 << 30) / s->img_x / s->img_n < s->img_y) return stbi__err("too large", "Image too large to decode");
             } else {
                // if paletted, then pal_n is our final components, and
-               // img_n is # components to decompress/sobel.
+               // img_n is # components to decompress/sobel_ref.
                s->img_n = 1;
                if ((1 << 30) / s->img_x / 4 < s->img_y) return stbi__err("too large","Corrupt PNG");
             }
@@ -5202,7 +5202,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
             if (z->idata == NULL) return stbi__err("no IDAT","Corrupt PNG");
             // initial guess for decoded data size to avoid unnecessary reallocs
             bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
-            raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* sobel mode per row */;
+            raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* sobel_ref mode per row */;
             z->expanded = (stbi_uc *) stbi_zlib_decode_malloc_guesssize_headerflag((char *) z->idata, ioff, raw_len, (int *) &raw_len, !is_iphone);
             if (z->expanded == NULL) return 0; // zlib should set error
             STBI_FREE(z->idata); z->idata = NULL;

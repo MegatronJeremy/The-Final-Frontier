@@ -70,12 +70,12 @@ Image Image::createCanvas(const Image &image) {
     img.size = image.size;
     img.rgbSize = image.rgbSize;
 
-    img.R.reserve(img.rgbSize);
-    img.G.reserve(img.rgbSize);
-    img.B.reserve(img.rgbSize);
+    img.R = AlignedVector<uint8_t>(img.rgbSize);
+    img.G = AlignedVector<uint8_t>(img.rgbSize);
+    img.B = AlignedVector<uint8_t>(img.rgbSize);
 
     if (img.channels == 4) {
-        img.A.reserve(img.rgbSize);
+        img.A = AlignedVector<uint8_t>(img.rgbSize);
     }
     return img;
 }

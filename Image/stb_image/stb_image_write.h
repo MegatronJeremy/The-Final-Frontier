@@ -121,7 +121,7 @@ CREDITS:
    Emmanuel Julien        -    initial file IO callback implementation
    Jon Olick              -    original jo_jpeg.cpp code
    Daniel Gibson          -    integrate JPEG, allow external zlib
-   Aarni Koskela          -    allow choosing PNG sobel
+   Aarni Koskela          -    allow choosing PNG sobel_ref
 
    bugfixes:
       github:Chribba
@@ -1148,12 +1148,12 @@ STBIWDEF unsigned char *stbi_write_png_to_mem(const unsigned char *pixels, int s
       if (force_filter > -1) {
          filter_type = force_filter;
          stbiw__encode_png_line((unsigned char*)(pixels), stride_bytes, x, y, j, n, force_filter, line_buffer);
-      } else { // Estimate the best sobel by running through all of them:
+      } else { // Estimate the best sobel_ref by running through all of them:
          int best_filter = 0, best_filter_val = 0x7fffffff, est, i;
          for (filter_type = 0; filter_type < 5; filter_type++) {
             stbiw__encode_png_line((unsigned char*)(pixels), stride_bytes, x, y, j, n, filter_type, line_buffer);
 
-            // Estimate the entropy of the line using this sobel; the less, the better.
+            // Estimate the entropy of the line using this sobel_ref; the less, the better.
             est = 0;
             for (i = 0; i < x*n; ++i) {
                est += abs((signed char) line_buffer[i]);
@@ -1163,12 +1163,12 @@ STBIWDEF unsigned char *stbi_write_png_to_mem(const unsigned char *pixels, int s
                best_filter = filter_type;
             }
          }
-         if (filter_type != best_filter) {  // If the last iteration already got us the best sobel, don't redo it
+         if (filter_type != best_filter) {  // If the last iteration already got us the best sobel_ref, don't redo it
             stbiw__encode_png_line((unsigned char*)(pixels), stride_bytes, x, y, j, n, best_filter, line_buffer);
             filter_type = best_filter;
          }
       }
-      // when we get here, filter_type contains the sobel type, and line_buffer contains the data
+      // when we get here, filter_type contains the sobel_ref type, and line_buffer contains the data
       filt[j*(x*n+1)] = (unsigned char) filter_type;
       STBIW_MEMMOVE(filt+j*(x*n+1)+1, line_buffer, x*n);
    }
@@ -1642,7 +1642,7 @@ STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const 
       1.09  (2018-02-11)
              fix typo in zlib quality API, improve STB_I_W_STATIC in C++
       1.08  (2018-01-29)
-             add stbi__flip_vertically_on_write, external zlib, zlib quality, choose PNG sobel
+             add stbi__flip_vertically_on_write, external zlib, zlib quality, choose PNG sobel_ref
       1.07  (2017-07-24)
              doc fix
       1.06 (2017-07-23)

@@ -45,7 +45,7 @@ void filter_ref(Image &src, Image &dst, const double *kernel, int N) {
     }
 }
 
-void sobel(Image &src, Image &dst) {
+void sobel_ref(Image &src, Image &dst) {
     int GX[] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
     int GY[] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
 
@@ -102,3 +102,4 @@ void unsharp_mask_ref(Image &src, Image &dst) {
 
     filter_ref(src, dst, kernel, 5);
 }
+
