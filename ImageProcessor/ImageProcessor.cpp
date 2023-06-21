@@ -117,7 +117,7 @@ void ImageProcessor::performOperations() {
 
         if (fnType == BENCH) {
             performBenchmark();
-            continue;
+            return;
         }
 
         switch (opTypeMap[fnType]) {
