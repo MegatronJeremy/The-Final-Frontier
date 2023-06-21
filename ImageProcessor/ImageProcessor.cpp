@@ -107,11 +107,6 @@ std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
 
 
 void ImageProcessor::performOperations() {
-    imgRefSrc = std::make_unique<Image>(imgPath);
-    imgOptSrc = std::make_unique<Image>(imgPath);
-    imgRef = std::make_unique<Image>(Image::createCanvas(*imgRefSrc));
-    imgOpt = std::make_unique<Image>(Image::createCanvas(*imgOptSrc));
-
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << "\t\tPerforming operations" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
@@ -188,6 +183,8 @@ void ImageProcessor::performBenchmark() {
     }
     std::cout << "\t\tBenchmark finished" << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
+
+    printResults();
 }
 
 void ImageProcessor::printResults() const {
@@ -235,6 +232,11 @@ void ImageProcessor::saveImage() {
 
 void ImageProcessor::setInputFile(const std::string &path) {
     imgPath = path;
+
+    imgRefSrc = std::make_unique<Image>(imgPath);
+    imgOptSrc = std::make_unique<Image>(imgPath);
+    imgRef = std::make_unique<Image>(Image::createCanvas(*imgRefSrc));
+    imgOpt = std::make_unique<Image>(Image::createCanvas(*imgOptSrc));
 }
 
 std::pair<size_t, std::vector<double>> ImageProcessor::loadMatrix(const std::string &fileName) {

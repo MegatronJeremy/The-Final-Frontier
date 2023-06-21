@@ -13,7 +13,6 @@
 #include <getopt.h>
 
 void printUsage() {
-    std::cerr << "Invalid usage! Please use the following command line options:\n";
     std::cerr << "Usage: <program_name> [options] <input_file>\n";
     std::cerr << "Options:\n";
     std::cerr << "  -a, --add <value>          : Perform addition operation with the specified value\n";
@@ -33,7 +32,14 @@ void printUsage() {
     std::cerr << "  -f, --filter <input_file>  : Perform filter operation with the specified matrix file\n";
     std::cerr << "  -k, --benchmark <value>    : Perform benchmark\n";
     std::cerr << "  -o, --output <output_file> : Specify the output file name\n";
+    std::cerr << "  -h, --help                 : Print usage\n";
 }
+
+void printError() {
+    std::cerr << "Invalid usage! Please use the following command line options:\n";
+    printUsage();
+}
+
 
 int main(int argc, char **argv) {
     static struct option long_options[] = {
@@ -54,6 +60,7 @@ int main(int argc, char **argv) {
             {"filter",    required_argument, nullptr, 'f'},
             {"benchmark", required_argument, nullptr, 'k'},
             {"output",    required_argument, nullptr, 'o'},
+            {"help",      required_argument, nullptr, 'h'},
             {nullptr,     0,                 nullptr, 0}
     };
 
@@ -62,7 +69,7 @@ int main(int argc, char **argv) {
     std::string in_file;
 
     int c;
-    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igef:ko:", long_options, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igef:ko:h", long_options, nullptr)) != -1) {
         switch (c) {
             case 'a':
                 imgProc.addOperation(ImageProcessor::ADD);
@@ -124,8 +131,11 @@ int main(int argc, char **argv) {
             case 'o':
                 imgProc.setOutputName(optarg);
                 break;
-            default:
+            case 'h':
                 printUsage();
+                return 0;
+            default:
+                printError();
                 return -1;
         }
     }
@@ -135,7 +145,7 @@ int main(int argc, char **argv) {
     if (optind < argc) {
         imgProc.setInputFile(argv[optind]);
     } else {
-        printUsage();
+        printError();
         return -3;
     }
 
