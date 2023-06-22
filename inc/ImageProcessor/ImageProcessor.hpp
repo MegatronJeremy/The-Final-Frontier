@@ -60,8 +60,6 @@ public:
 
     static std::unordered_map<OpEnum, std::function<void(Image &, Image &, const double *, int)>> matrixOpOptFnMap;
 
-    typedef std::function<void()> Operation;
-
     void addOperation(OpEnum o) {
         opsQueue.push(o);
     }
@@ -94,11 +92,14 @@ private:
         time_t timeOpt = make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
 
         std::cout << "Unoptimized\t" <<
-                  timeRef << " ns" << std::endl;
-        std::cout << "Optimized\t" <<
-                  timeOpt << " ns" << std::endl;
+                  std::right << std::setw(36) << timeRef << " ns" << std::endl;
+        std::cout << "Optimized\t"
+                  << std::right << std::setw(36) << timeOpt << " ns" << std::endl;
 
-        std::cout << opName << " time shortened " << static_cast<double>(timeRef) / static_cast<double>(timeOpt)
+        // total width is 49
+        std::cout << std::left << std::setw(34) << opName + " time shortened"
+                  << std::right << std::setw(15) << std::fixed << std::setprecision(2)
+                  << static_cast<double>(timeRef) / static_cast<double>(timeOpt)
                   << " times" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
@@ -125,10 +126,12 @@ private:
         timeRefAvg /= N;
         timeOptAvg /= N;
 
-        std::cout << "Unoptimized\t" << timeRefAvg << " ns" << std::endl;
-        std::cout << "Optimized\t" << timeOptAvg << " ns" << std::endl;
+        std::cout << "Unoptimized\t" << std::right << std::setw(36) << timeRefAvg << " ns" << std::endl;
+        std::cout << "Optimized\t" << std::right << std::setw(36) << timeOptAvg << " ns" << std::endl;
 
-        std::cout << opName << " time shortened " << static_cast<double>(timeRefAvg) / static_cast<double>(timeOptAvg)
+        std::cout << std::left << std::setw(34) << opName + " time shortened"
+                  << std::right << std::setw(15) << std::fixed << std::setprecision(2)
+                  << static_cast<double>(timeRefAvg) / static_cast<double>(timeOptAvg)
                   << " times" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
 
@@ -143,7 +146,13 @@ private:
 
     void saveImage();
 
-    static std::pair<size_t, std::vector<double>> loadMatrix(const std::string &fileName);
+    [[nodiscard]] std::pair<size_t, std::vector<double>> loadMatrix(const std::string &fileName) const;
+
+    static void printTitle(const std::string &s);
+
+    const std::string inputImgFolder = "InputImg";
+    const std::string outputImgFolder = "OutputImg";
+    const std::string kernelFolder = "Kernel";
 
     std::string imageName;
 

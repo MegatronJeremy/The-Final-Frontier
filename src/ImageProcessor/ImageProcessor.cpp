@@ -108,7 +108,7 @@ std::unordered_map<ImageProcessor::OpEnum, std::function<void(Image &, Image &,
 
 void ImageProcessor::performOperations() {
     std::cout << "-------------------------------------------------------" << std::endl;
-    std::cout << "\t\tPerforming operations" << std::endl;
+    printTitle("Performing operations");
     std::cout << "-------------------------------------------------------" << std::endl;
 
     while (!opsQueue.empty()) {
@@ -160,7 +160,7 @@ void ImageProcessor::performOperations() {
 void ImageProcessor::performBenchmark() {
     std::cout << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
-    std::cout << "\t\tPerforming benchmark" << std::endl;
+    printTitle("Performing benchmark");
     std::cout << "-------------------------------------------------------" << std::endl;
 
     for (const auto &[fnType, opType]: opTypeMap) {
@@ -181,7 +181,7 @@ void ImageProcessor::performBenchmark() {
                 throw std::runtime_error("Operation not recognized");
         }
     }
-    std::cout << "\t\tBenchmark finished" << std::endl;
+    printTitle("Benchmark finished");
     std::cout << "-------------------------------------------------------" << std::endl;
 
     printResults();
@@ -201,26 +201,25 @@ void ImageProcessor::printResults() const {
 
     std::cout << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
-    std::cout << std::setw(24) << std::right << "Results" << std::endl;
+    printTitle("Results");
     std::cout << "-------------------------------------------------------" << std::endl;
 
-    std::cout << std::left << std::setw(12) << "Unoptimized";
+    std::cout << std::left << std::setw(30) << "Unoptimized";
     std::cout << std::right << std::setw(5) << totalRefSec.count() << " s ";
     std::cout << std::right << std::setw(5) << totalRefMs.count() << " ms ";
     std::cout << std::right << std::setw(5) << totalRefUs.count() << " us" << std::endl;
 
-    std::cout << std::left << std::setw(12) << "Optimized";
+    std::cout << std::left << std::setw(30) << "Optimized";
     std::cout << std::right << std::setw(5) << totalOptSec.count() << " s ";
     std::cout << std::right << std::setw(5) << totalOptMs.count() << " ms ";
     std::cout << std::right << std::setw(5) << totalOptUs.count() << " us" << std::endl;
 
-    std::cout << "Total time shortened ";
-    std::cout << std::fixed << std::setprecision(2)
-              << static_cast<double>(totalRefTime) / static_cast<double>(totalOptTime);
-    std::cout << " times" << std::endl;
+    std::cout << std::left << std::setw(34) << "Total time shortened"
+              << std::right << std::setw(15) << std::fixed << std::setprecision(2)
+              << static_cast<double>(totalRefTime) / static_cast<double>(totalOptTime)
+              << " times" << std::endl;
 
     std::cout << "-------------------------------------------------------" << std::endl;
-
 }
 
 void ImageProcessor::setOutputName(const std::string &fileName) {
@@ -232,13 +231,17 @@ void ImageProcessor::saveImage() {
         imageName = std::filesystem::path(
                 imgPath).stem().string(); // Extract the image name without extension
     }
+
+    std::filesystem::path outputFolderPath = outputImgFolder;
+    std::filesystem::create_directory(outputFolderPath); // Create the folder if it doesn't exist
+
     std::string imageExtension = std::filesystem::path(imgPath).extension().string(); // Extract the image extension
-    imgRefSrc->save("OutputImg/" + imageName + "_ref" + imageExtension);
-    imgOptSrc->save("OutputImg/" + imageName + "_opt" + imageExtension);
+    imgRefSrc->save(outputImgFolder + "/" + imageName + "_ref" + imageExtension);
+    imgOptSrc->save(outputImgFolder + "/" + imageName + "_opt" + imageExtension);
 }
 
 void ImageProcessor::setInputFile(const std::string &path) {
-    imgPath = "InputImg/" + path;
+    imgPath = inputImgFolder + "/" + path;
 
     imgRefSrc = std::make_unique<Image>(imgPath);
     imgOptSrc = std::make_unique<Image>(imgPath);
@@ -246,8 +249,8 @@ void ImageProcessor::setInputFile(const std::string &path) {
     imgOpt = std::make_unique<Image>(Image::createCanvas(*imgOptSrc));
 }
 
-std::pair<size_t, std::vector<double>> ImageProcessor::loadMatrix(const std::string &fileName) {
-    std::ifstream file("Kernel/" + fileName);
+std::pair<size_t, std::vector<double>> ImageProcessor::loadMatrix(const std::string &fileName) const {
+    std::ifstream file(kernelFolder + "/" + fileName);
     std::string line;
 
     std::vector<double> matrix;
@@ -280,4 +283,12 @@ std::pair<size_t, std::vector<double>> ImageProcessor::loadMatrix(const std::str
     }
 
     return {N, matrix};
+}
+
+void ImageProcessor::printTitle(const std::string &title) {
+    size_t titleWidth = 54;  // Width of the line
+    size_t titleLength = title.length();
+    int indent = static_cast<int>(titleWidth - titleLength) / 2;
+
+    std::cout << std::setw(indent) << "" << title << std::endl;
 }
