@@ -113,18 +113,16 @@ private:
     template<typename RefOp, typename OptOp, typename... Args>
     void performNormalizedOperation(const RefOp &refOp, const OptOp &optOp, const std::string &opName,
                                     Args &&...args) {
-        const int N = 5;
-
         time_t timeRefAvg = 0;
         time_t timeOptAvg = 0;
 
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < benchmIters; i++) {
             timeRefAvg += make_time_decorator(refOp)(*imgRefSrc, *imgRef, std::forward<Args>(args)...);
             timeOptAvg += make_time_decorator(optOp)(*imgOptSrc, *imgOpt, std::forward<Args>(args)...);
         }
 
-        timeRefAvg /= N;
-        timeOptAvg /= N;
+        timeRefAvg /= benchmIters;
+        timeOptAvg /= benchmIters;
 
         std::cout << "Unoptimized\t" << std::right << std::setw(36) << timeRefAvg << " ns" << std::endl;
         std::cout << "Optimized\t" << std::right << std::setw(36) << timeOptAvg << " ns" << std::endl;
@@ -153,6 +151,8 @@ private:
     const std::string inputImgFolder = "InputImg";
     const std::string outputImgFolder = "OutputImg";
     const std::string kernelFolder = "Kernel";
+
+    int benchmIters;
 
     std::string imageName;
 

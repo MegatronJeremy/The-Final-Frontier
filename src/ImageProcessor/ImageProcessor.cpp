@@ -116,6 +116,9 @@ void ImageProcessor::performOperations() {
         opsQueue.pop();
 
         if (fnType == BENCH) {
+            benchmIters = ucharOpQueue.front();
+            ucharOpQueue.pop();
+
             performBenchmark();
             return;
         }

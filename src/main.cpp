@@ -30,7 +30,7 @@ void printUsage() {
     std::cerr << "  -g, --gray                 : Perform grayscale conversion\n";
     std::cerr << "  -e, --sobel                : Perform sobel_ref filter operation\n";
     std::cerr << "  -f, --filter <input_file>  : Perform filter operation with the specified matrix file\n";
-    std::cerr << "  -k, --benchmark            : Perform benchmark\n";
+    std::cerr << "  -k, --benchmark <value>    : Perform benchmark normalized over N given iterations\n";
     std::cerr << "  -o, --output <output_file> : Specify the output image name\n";
     std::cerr << "  -h, --help                 : Print usage\n";
 }
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     std::string in_file;
 
     int c;
-    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igef:ko:h", long_options, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:s:z:m:d:c:p:lbn:x:igef:k:o:h", long_options, nullptr)) != -1) {
         switch (c) {
             case 'a':
                 imgProc.addOperation(ImageProcessor::ADD);
@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
                 break;
             case 'k':
                 imgProc.addOperation(ImageProcessor::BENCH);
+                imgProc.addOperand(strtol(optarg, nullptr, 10));
                 break;
             case 'o':
                 imgProc.setOutputName(optarg);
