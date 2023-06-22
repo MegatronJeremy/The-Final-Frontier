@@ -30,7 +30,7 @@ void printUsage() {
     std::cerr << "  -g, --gray                 : Perform grayscale conversion\n";
     std::cerr << "  -e, --sobel                : Perform sobel_ref filter operation\n";
     std::cerr << "  -f, --filter <input_file>  : Perform filter operation with the specified matrix file\n";
-    std::cerr << "  -k, --benchmark <value>    : Perform benchmark\n";
+    std::cerr << "  -k, --benchmark            : Perform benchmark\n";
     std::cerr << "  -o, --output <output_file> : Specify the output image name\n";
     std::cerr << "  -h, --help                 : Print usage\n";
 }
