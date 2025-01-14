@@ -1,6 +1,11 @@
 # The Final Frontier
 SIMD, cache, and multithreading optimizations of most common image processing procedures.
 
+## Generate binaries
+
+- The only prerequisite is that you have **CMake** and **MinGW** installed
+- After doing this, simply run **Generate-Binaries.bat** and run the executable
+
 ## Usage
 
 <program_name> [options] <input_file>
@@ -40,25 +45,25 @@ SIMD, cache, and multithreading optimizations of most common image processing pr
 
 ### Addition operation:
 
-    <program_name> -a 5 input_file.jpg
+    TheFinalFrontier.exe -a 5 input_file.jpg
 
 ### Grayscale conversion:
 
-    <program_name> -g input_file.jpg
+    TheFinalFrontier.exe -g input_file.jpg
 
 ### Sobel filter and logarithm performed one after another:
 
-    <program_name> -e -l input_file.jpg
+    TheFinalFrontier.exe -e -l input_file.jpg
 
 ### Perform benchmark normalized over 10 iterations:
 
-    <program_name> -k 10 input_file.jpg
+    TheFinalFrontier.exe -k 10 input_file.jpg
 
 ### Perform filter operation with a matrix file:
 
-    <program_name> -f matrix.txt input_file.jpg
+    TheFinalFrontier.exe -f matrix.txt input_file.jpg
 
 ### Help:
 
-    <program_name> -h
+    TheFinalFrontier.exe -h
 
