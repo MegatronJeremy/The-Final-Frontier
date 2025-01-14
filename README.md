@@ -45,25 +45,25 @@ SIMD, cache, and multithreading optimizations of most common image processing pr
 
 ### Addition operation:
 
-    TheFinalFrontier.exe -a 5 input_file.jpg
+    ./TheFinalFrontier.exe -a 5 boreal8k.jpg
 
 ### Grayscale conversion:
 
-    TheFinalFrontier.exe -g input_file.jpg
+    ./TheFinalFrontier.exe -g boreal8k.jpg
 
 ### Sobel filter and logarithm performed one after another:
 
-    TheFinalFrontier.exe -e -l input_file.jpg
+    ./TheFinalFrontier.exe -e -l boreal8k.jpg
 
 ### Perform benchmark normalized over 10 iterations:
 
-    TheFinalFrontier.exe -k 10 input_file.jpg
+    ./TheFinalFrontier.exe -k 10 boreal8k.jpg
 
 ### Perform filter operation with a matrix file:
 
-    TheFinalFrontier.exe -f matrix.txt input_file.jpg
+    ./TheFinalFrontier.exe -f matrix.txt boreal8k.jpg
 
 ### Help:
 
-    TheFinalFrontier.exe -h
+    ./TheFinalFrontier.exe -h
 
