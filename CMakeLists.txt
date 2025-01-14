@@ -1,24 +1,30 @@
-cmake_minimum_required(VERSION 3.22)
-project(TheFinalFrontier)
+cmake_minimum_required(VERSION 3.15)
+project(TheFinalFrontier LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+# Set the C++ standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -march=native")
+# Source and header files
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE HEADERS "inc/*.h")
 
-add_executable(TheFinalFrontier
-        src/main.cpp
-        inc/Image/stb_image/stb_image.h
-        inc/Image/stb_image/stb_image_write.h
-        inc/Utils/AlignedAllocator.h
-        inc/Image/Image.hpp src/Image/Image.cpp
-        src/Predefined/Inversion.cpp src/Predefined/Grayscale.cpp
-        inc/Predefined/Inversion.hpp src/Filter/FilterRef.cpp
-        inc/Filter/Filter.hpp src/Arithmetic/ArithmeticRef.cpp
-        inc/Arithmetic/Arithmetic.hpp src/Arithmetic/ArithmeticSIMD.cpp
-        inc/SIMD_Util/SIMD_Util.h inc/Functions/Functions.hpp
-        src/Functions/FunctionsRef.cpp src/Functions/FunctionsSIMD.cpp
-        inc/SIMD_Util/avx_mathfun.h src/Filter/FilterMtBlocking.cpp
-        inc/CPU_Info/CPU_Info.h
-        src/ImageProcessor/ImageProcessor.cpp
-        inc/ImageProcessor/ImageProcessor.hpp
-        inc/Utils/TimeDecorator.hpp)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE inc)
+
+# Compiler-specific options
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX) # Enable warnings as errors
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -march=native)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _GNU_SOURCE)
+endif()
+
+# Link options (if needed)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_link_options(${PROJECT_NAME} PRIVATE -pthread)
+endif()

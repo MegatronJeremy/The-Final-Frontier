@@ -2,3 +2,4 @@
 cmake-build-debug/*
 *.bak
 OutputImg/*
+*.exe
